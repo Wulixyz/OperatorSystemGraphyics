@@ -1,0 +1,35 @@
+.menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 80%; /* 可以根据需要设置高度，这里使用100视窗高度作为示例 */
+}
+
+.input_and_random,
+.select_check,
+.submit_button {
+    width: 100%; /* 确保子元素占满宽度 */
+}
+
+.select_and_input {
+    /* background-color: lightgray; */
+}
+
+.select_by_random {
+    margin: 2%;
+}
+
+.select_by_input {
+    margin: 2%;
+}
+
+.select_check {
+    /* background-color: lightpink; */
+    margin-top: 2%;
+    text-align: center;
+}
+
+.submit_button {
+    margin-top: 2%;
+}
