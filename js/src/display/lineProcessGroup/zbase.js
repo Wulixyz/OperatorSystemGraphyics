@@ -5,11 +5,10 @@ class LineProcessGroup extends AnimationObjectBase {
         this.ctx = this.root.ctx;
         this.mode = mode;
         this.pos = pos;
+
         this.width = width;
         this.height = height;
         this.scale = this.root.scale;
-
-        console.log(this.height);
 
         this.topLeft = [this.pos[0],this.pos[1] - this.height / 2];
         this.bottomLeft = [this.pos[0],this.pos[1] + this.height / 2];

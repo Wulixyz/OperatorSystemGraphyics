@@ -1,10 +1,14 @@
 class ProcessBlock extends AnimationObjectBase {
-    constructor(root,pos1,pos2) {
+    constructor(root,pos,width,height) {
         super();
         this.root = root;
         this.ctx = this.root.ctx;
-        this.pos1 = pos1;
-        this.pos2 = pos2;
+        this.width = width;
+        this.height = height;
+        this.scale = this.root.scale;
+        this.pos = pos;
+
+        this.pos1 = [this.pos[0],this.pos[1] - this.height / 2];
     }
 
     update() {
@@ -12,7 +16,16 @@ class ProcessBlock extends AnimationObjectBase {
     }
 
     render() {
+        this.renderBlock();
+        this.renderProcessName();
+    }
+
+    renderBlock() {
         this.ctx.fillStyle = "rgba(242,232,60,1)";
-        this.ctx.fillRect(this.pos1[0],this.pos1[1],this.pos2[0],this.pos2[1]);
+        this.ctx.fillRect(this.pos1[0],this.pos1[1],this.width,this.height);
+    }
+
+    renderProcessName() {
+
     }
 }

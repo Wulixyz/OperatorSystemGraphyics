@@ -107,11 +107,10 @@ class DisplayBackground extends AnimationObjectBase {
         this.ctx = this.root.ctx;
         this.mode = mode;
         this.pos = pos;
+
         this.width = width;
         this.height = height;
         this.scale = this.root.scale;
-
-        console.log(this.height);
 
         this.topLeft = [this.pos[0],this.pos[1] - this.height / 2];
         this.bottomLeft = [this.pos[0],this.pos[1] + this.height / 2];
@@ -151,12 +150,16 @@ class DisplayBackground extends AnimationObjectBase {
         this.ctx.stroke();
     }
 }class ProcessBlock extends AnimationObjectBase {
-    constructor(root,pos1,pos2) {
+    constructor(root,pos,width,height) {
         super();
         this.root = root;
         this.ctx = this.root.ctx;
-        this.pos1 = pos1;
-        this.pos2 = pos2;
+        this.width = width;
+        this.height = height;
+        this.scale = this.root.scale;
+        this.pos = pos;
+
+        this.pos1 = [this.pos[0],this.pos[1] - this.height / 2];
     }
 
     update() {
@@ -164,8 +167,17 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     render() {
+        this.renderBlock();
+        this.renderProcessName();
+    }
+
+    renderBlock() {
         this.ctx.fillStyle = "rgba(242,232,60,1)";
-        this.ctx.fillRect(this.pos1[0],this.pos1[1],this.pos2[0],this.pos2[1]);
+        this.ctx.fillRect(this.pos1[0],this.pos1[1],this.width,this.height);
+    }
+
+    renderProcessName() {
+
     }
 }class ProcessHandleGroup extends AnimationObjectBase {
     constructor(display,pos,selectMode) {
@@ -236,8 +248,11 @@ class DisplayBackground extends AnimationObjectBase {
         this.height = 0.14 * this.scale;
         this.pos = [0.3 * this.display.width,0.1 * this.display.height];
 
+        this.PBWidth = this.width / 5;
+        this.height = this.height;
+        this.waitProcessInfo = this.display.processInfoArray;
+
         this.groupGraphyics = new LineProcessGroup(this,this.pos,this.width,this.height,"Waitting");
-        this.processBlock = new ProcessBlock(this,[this.pos[0],this.pos[1] - this.height / 2],[this.pos[0] + this.width,this.pos[1] + this.height / 2]);
     }
 
     render() {
@@ -254,8 +269,6 @@ class DisplayBackground extends AnimationObjectBase {
         this.ModuleFactory = this.root.ModuleFactory;
         this.$display = $(`<div class='schedule-display'></div>`);
         this.root.$schedule.append(this.$display);
-
-        this.processInfoArray = this.root.menu.processInfoArray;
 
         this.width = this.$display.width();
         this.height = this.$display.height();
@@ -275,6 +288,10 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     show() {
+        this.processInfoArray = this.root.menu.processInfoArray;
+        this.selectMode = this.root.menu.selectMode;
+        console.log(this.selectMode);
+
         this.displayBackground = new DisplayBackground(this);
 
         this.ctx = this.displayBackground.ctx;
@@ -282,9 +299,12 @@ class DisplayBackground extends AnimationObjectBase {
         this.processWaitGroup = new ProcessWaitGroup(this);
         
         this.processHandleGroups = [];
-        for(let i = 1;i <= 3;i ++ ) {
-            this.processHandleGroups.push(new ProcessHandleGroup(this,[this.width / 4 * i,this.height * 0.75],"FCFS"));
+        for(let i = 0;i < this.selectMode.length;i ++ ) {
+            this.processHandleGroups.push(new ProcessHandleGroup(this,[this.width / (this.selectMode.length + 1) * (i + 1),this.height * 0.75],this.selectMode[i]));
         }
+        // for(let i = 1;i <= 3;i ++ ) {
+        //     this.processHandleGroups.push(new ProcessHandleGroup(this,[this.width / 4 * i,this.height * 0.75],"FCFS"));
+        // }
         
         this.resize();
 
@@ -311,7 +331,7 @@ class Menu {
                             <button class="select-by-random-button btn btn-primary" type="button">随机生成</button>
                         </div>
                     </div>
-                    <div class='select-check'>
+                    <div class='mode-select select-check'>
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
                             <label class="form-check-label" for="inlineCheckbox1">FCFS</label>
@@ -341,6 +361,7 @@ class Menu {
         this.$selectByRandomButton = this.$menu.find('.select-by-random-button');
         this.$inputForm = this.$menu.find('.input-form');
         this.$addInfoButton = this.$selectByInput.find('.add-info-button');
+        this.$selectMode = this.$menu.find('.mode-select');
         this.$submitButton = this.$menu.find('.submit-button');
 
         this.$inputForm.hide();
@@ -349,6 +370,10 @@ class Menu {
         this.addNewInputGroup();
 
         this.root.$schedule.append(this.$menu);
+
+        this.isRandom = true;
+        this.seed = Math.floor(Math.random() * 10000);  // 生成随机种子
+        this.generator = new Math.seedrandom(this.seed);  // 随机数生成器
         
         this.start();
     }
@@ -363,12 +388,16 @@ class Menu {
         this.$selectByInputButton.click(() => {
             outer.showSelectByInput();
 
+            outer.isRandom = false;
+
             outer.$selectByRandom.hide();
             outer.$selectByInputButton.hide();
         });
 
         this.$selectByRandomButton.click(() => {
             outer.hideSelectByInput();
+
+            outer.isRandom = true;
             
             outer.$selectByRandom.show();
             outer.$selectByInputButton.show();
@@ -385,22 +414,43 @@ class Menu {
 
         this.$submitButton.click(() => {
             let processInfoArray = [];
-            outer.$inputForm.find('.input-group').each(function() {
-                const inputValues = $(this).find('input').map(function() {
-                    return $(this).val();
-                }).get();
-                processInfoArray.push({
-                    'processName': inputValues[0],
-                    'arrivalTime': inputValues[1],
-                    'priority': inputValues[2],
-                    'burstTime': inputValues[3],
-                });
-            });
 
+            if(outer.isRandom === false) {
+                outer.$inputForm.find('.input-group').each(function() {
+                    const inputValues = $(this).find('input').map(function() {
+                        return $(this).val();
+                    }).get();
+                    processInfoArray.push({
+                        'processName': inputValues[0],
+                        'arrivalTime': inputValues[1],
+                        'priority': inputValues[2],
+                        'burstTime': inputValues[3],
+                    });
+                });
+            } else {
+                const processCount = this.generateRandomInt(5, 10);
+                let dividedId = 1;
+
+                for (var i = 1; i <= processCount; i++) {
+                    processInfoArray.push({
+                        'processName': "P" + dividedId,
+                        'arrivalTime': this.generateRandomDouble(1,10),
+                        'priority': this.generateRandomDouble(1,10),
+                        'burstTime': this.generateRandomDouble(1,10),
+                    });
+                    dividedId ++;
+                }
+            }
+
+            outer.getSelectMode();
             outer.processInfoArray = processInfoArray;
-        
-            outer.hide();
-            outer.root.display.show();
+
+            if(outer.selectMode.length < 1) {
+                alert("请至少选择一种模式");
+            } else {
+                outer.hide();
+                outer.root.display.show();
+            }
         });
     }
 
@@ -410,6 +460,26 @@ class Menu {
 
     hide() {
         this.$menu.hide();
+    }
+
+    generateRandomDouble(l,r) {  // 生成范围在 l 到 r 之间的均匀分布的浮点数
+        return this.generator() * (r - l) + l;
+    }
+
+    generateRandomInt(l,r) {  // 生成范围在 l 到 r 之间的均匀分布的整数
+        return Math.floor(this.generator() * (r - l + 1)) + l;
+    }
+
+    getSelectMode() {
+        let modes = ['FCFS','SJF','HPF'];
+        let modeIsSelect = this.$selectMode.find('.form-check-input').map(function() {
+            return $(this).is(':checked');
+        }).get();
+
+        this.selectMode = [];
+        for(let i = 0;i < modeIsSelect.length;i ++ ) {
+            if(modeIsSelect[i]) this.selectMode.push(modes[i]);
+        }
     }
 
     addNewInputGroup() {

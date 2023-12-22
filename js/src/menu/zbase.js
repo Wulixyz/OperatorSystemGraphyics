@@ -14,7 +14,7 @@ class Menu {
                             <button class="select-by-random-button btn btn-primary" type="button">随机生成</button>
                         </div>
                     </div>
-                    <div class='select-check'>
+                    <div class='mode-select select-check'>
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="checkbox" id="inlineCheckbox1" value="option1">
                             <label class="form-check-label" for="inlineCheckbox1">FCFS</label>
@@ -44,6 +44,7 @@ class Menu {
         this.$selectByRandomButton = this.$menu.find('.select-by-random-button');
         this.$inputForm = this.$menu.find('.input-form');
         this.$addInfoButton = this.$selectByInput.find('.add-info-button');
+        this.$selectMode = this.$menu.find('.mode-select');
         this.$submitButton = this.$menu.find('.submit-button');
 
         this.$inputForm.hide();
@@ -52,6 +53,10 @@ class Menu {
         this.addNewInputGroup();
 
         this.root.$schedule.append(this.$menu);
+
+        this.isRandom = true;
+        this.seed = Math.floor(Math.random() * 10000);  // 生成随机种子
+        this.generator = new Math.seedrandom(this.seed);  // 随机数生成器
         
         this.start();
     }
@@ -66,12 +71,16 @@ class Menu {
         this.$selectByInputButton.click(() => {
             outer.showSelectByInput();
 
+            outer.isRandom = false;
+
             outer.$selectByRandom.hide();
             outer.$selectByInputButton.hide();
         });
 
         this.$selectByRandomButton.click(() => {
             outer.hideSelectByInput();
+
+            outer.isRandom = true;
             
             outer.$selectByRandom.show();
             outer.$selectByInputButton.show();
@@ -88,22 +97,43 @@ class Menu {
 
         this.$submitButton.click(() => {
             let processInfoArray = [];
-            outer.$inputForm.find('.input-group').each(function() {
-                const inputValues = $(this).find('input').map(function() {
-                    return $(this).val();
-                }).get();
-                processInfoArray.push({
-                    'processName': inputValues[0],
-                    'arrivalTime': inputValues[1],
-                    'priority': inputValues[2],
-                    'burstTime': inputValues[3],
-                });
-            });
 
+            if(outer.isRandom === false) {
+                outer.$inputForm.find('.input-group').each(function() {
+                    const inputValues = $(this).find('input').map(function() {
+                        return $(this).val();
+                    }).get();
+                    processInfoArray.push({
+                        'processName': inputValues[0],
+                        'arrivalTime': inputValues[1],
+                        'priority': inputValues[2],
+                        'burstTime': inputValues[3],
+                    });
+                });
+            } else {
+                const processCount = this.generateRandomInt(5, 10);
+                let dividedId = 1;
+
+                for (var i = 1; i <= processCount; i++) {
+                    processInfoArray.push({
+                        'processName': "P" + dividedId,
+                        'arrivalTime': this.generateRandomDouble(1,10),
+                        'priority': this.generateRandomDouble(1,10),
+                        'burstTime': this.generateRandomDouble(1,10),
+                    });
+                    dividedId ++;
+                }
+            }
+
+            outer.getSelectMode();
             outer.processInfoArray = processInfoArray;
-        
-            outer.hide();
-            outer.root.display.show();
+
+            if(outer.selectMode.length < 1) {
+                alert("请至少选择一种模式");
+            } else {
+                outer.hide();
+                outer.root.display.show();
+            }
         });
     }
 
@@ -113,6 +143,26 @@ class Menu {
 
     hide() {
         this.$menu.hide();
+    }
+
+    generateRandomDouble(l,r) {  // 生成范围在 l 到 r 之间的均匀分布的浮点数
+        return this.generator() * (r - l) + l;
+    }
+
+    generateRandomInt(l,r) {  // 生成范围在 l 到 r 之间的均匀分布的整数
+        return Math.floor(this.generator() * (r - l + 1)) + l;
+    }
+
+    getSelectMode() {
+        let modes = ['FCFS','SJF','HPF'];
+        let modeIsSelect = this.$selectMode.find('.form-check-input').map(function() {
+            return $(this).is(':checked');
+        }).get();
+
+        this.selectMode = [];
+        for(let i = 0;i < modeIsSelect.length;i ++ ) {
+            if(modeIsSelect[i]) this.selectMode.push(modes[i]);
+        }
     }
 
     addNewInputGroup() {
