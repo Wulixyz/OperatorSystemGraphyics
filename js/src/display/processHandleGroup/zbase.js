@@ -12,7 +12,7 @@ class ProcessHandleGroup extends AnimationObjectBase {
         this.pos = pos;
         this.selectMode = selectMode;
 
-        this.completeProcess = new LineProcessGroup(this,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,this.height,"Completed");
+        this.completeProcess = new LineProcessGroup(this,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale,"Completed");
     }
 
     show() {
@@ -27,6 +27,7 @@ class ProcessHandleGroup extends AnimationObjectBase {
         this.renderBottomLine();
         this.renderTwoSidesLine();
         this.renderBottomMessage();
+        this.renderProcessBlock();
     }
 
     renderBottomLine() {
@@ -42,6 +43,11 @@ class ProcessHandleGroup extends AnimationObjectBase {
     renderTwoSidesLine() {
         this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1],this.pos[0] - this.power * this.scale,this.pos[1] - 0.5 * this.scale);
         this.drawLine(this.pos[0] + this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1] - 0.5 * this.scale);
+    }
+
+    renderProcessBlock() {
+        // this.proccessBlock = new ProcessBlock(this,this.pos,[this.pos[0] + this.width,this.pos[1] + this.height]);
+
     }
 
     drawLine(x1,y1,x2,y2) {

@@ -9,10 +9,12 @@ class LineProcessGroup extends AnimationObjectBase {
         this.height = height;
         this.scale = this.root.scale;
 
-        this.topLeft = [this.pos[0],this.pos[1] - 0.06 * this.scale];
-        this.bottomLeft = [this.pos[0],this.pos[1] + 0.06 * this.scale];
-        this.topRight = [this.pos[0] + this.width,this.pos[1] - 0.06 * this.scale];
-        this.bottomRight = [this.pos[0] + this.width,this.pos[1] + 0.06 * this.scale];
+        console.log(this.height);
+
+        this.topLeft = [this.pos[0],this.pos[1] - this.height / 2];
+        this.bottomLeft = [this.pos[0],this.pos[1] + this.height / 2];
+        this.topRight = [this.pos[0] + this.width,this.pos[1] - this.height / 2];
+        this.bottomRight = [this.pos[0] + this.width,this.pos[1] + this.height / 2];
     }
 
     update() {

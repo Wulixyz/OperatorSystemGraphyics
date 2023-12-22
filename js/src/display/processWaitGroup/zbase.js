@@ -4,11 +4,13 @@ class ProcessWaitGroup extends AnimationObjectBase {
         this.display = display;
 
         this.ctx = this.display.ctx;
-        this.width = this.display.width;
-        this.height = this.display.height;
         this.scale = this.display.scale;
+        this.width = 0.7 * this.scale;
+        this.height = 0.14 * this.scale;
+        this.pos = [0.3 * this.display.width,0.1 * this.display.height];
 
-        this.groupGraphyics = new LineProcessGroup(this,[0.3 * this.width,0.1 * this.height],0.7 * this.scale,0.1 * this.height,"Waitting");
+        this.groupGraphyics = new LineProcessGroup(this,this.pos,this.width,this.height,"Waitting");
+        this.processBlock = new ProcessBlock(this,[this.pos[0],this.pos[1] - this.height / 2],[this.pos[0] + this.width,this.pos[1] + this.height / 2]);
     }
 
     render() {

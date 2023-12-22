@@ -111,10 +111,12 @@ class DisplayBackground extends AnimationObjectBase {
         this.height = height;
         this.scale = this.root.scale;
 
-        this.topLeft = [this.pos[0],this.pos[1] - 0.06 * this.scale];
-        this.bottomLeft = [this.pos[0],this.pos[1] + 0.06 * this.scale];
-        this.topRight = [this.pos[0] + this.width,this.pos[1] - 0.06 * this.scale];
-        this.bottomRight = [this.pos[0] + this.width,this.pos[1] + 0.06 * this.scale];
+        console.log(this.height);
+
+        this.topLeft = [this.pos[0],this.pos[1] - this.height / 2];
+        this.bottomLeft = [this.pos[0],this.pos[1] + this.height / 2];
+        this.topRight = [this.pos[0] + this.width,this.pos[1] - this.height / 2];
+        this.bottomRight = [this.pos[0] + this.width,this.pos[1] + this.height / 2];
     }
 
     update() {
@@ -163,7 +165,7 @@ class DisplayBackground extends AnimationObjectBase {
 
     render() {
         this.ctx.fillStyle = "rgba(242,232,60,1)";
-        this.fillRect(this.pos1[0],this.pos1[1],this.pos2[0],this.pos2[1]);
+        this.ctx.fillRect(this.pos1[0],this.pos1[1],this.pos2[0],this.pos2[1]);
     }
 }class ProcessHandleGroup extends AnimationObjectBase {
     constructor(display,pos,selectMode) {
@@ -179,7 +181,7 @@ class DisplayBackground extends AnimationObjectBase {
         this.pos = pos;
         this.selectMode = selectMode;
 
-        this.completeProcess = new LineProcessGroup(this,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,this.height,"Completed");
+        this.completeProcess = new LineProcessGroup(this,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale,"Completed");
     }
 
     show() {
@@ -194,6 +196,7 @@ class DisplayBackground extends AnimationObjectBase {
         this.renderBottomLine();
         this.renderTwoSidesLine();
         this.renderBottomMessage();
+        this.renderProcessBlock();
     }
 
     renderBottomLine() {
@@ -211,6 +214,11 @@ class DisplayBackground extends AnimationObjectBase {
         this.drawLine(this.pos[0] + this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1] - 0.5 * this.scale);
     }
 
+    renderProcessBlock() {
+        // this.proccessBlock = new ProcessBlock(this,this.pos,[this.pos[0] + this.width,this.pos[1] + this.height]);
+
+    }
+
     drawLine(x1,y1,x2,y2) {
         this.ctx.beginPath();
         this.ctx.moveTo(x1,y1);
@@ -223,11 +231,13 @@ class DisplayBackground extends AnimationObjectBase {
         this.display = display;
 
         this.ctx = this.display.ctx;
-        this.width = this.display.width;
-        this.height = this.display.height;
         this.scale = this.display.scale;
+        this.width = 0.7 * this.scale;
+        this.height = 0.14 * this.scale;
+        this.pos = [0.3 * this.display.width,0.1 * this.display.height];
 
-        this.groupGraphyics = new LineProcessGroup(this,[0.3 * this.width,0.1 * this.height],0.7 * this.scale,0.1 * this.height,"Waitting");
+        this.groupGraphyics = new LineProcessGroup(this,this.pos,this.width,this.height,"Waitting");
+        this.processBlock = new ProcessBlock(this,[this.pos[0],this.pos[1] - this.height / 2],[this.pos[0] + this.width,this.pos[1] + this.height / 2]);
     }
 
     render() {
