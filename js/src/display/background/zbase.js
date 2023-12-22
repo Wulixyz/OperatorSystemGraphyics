@@ -17,7 +17,7 @@ class DisplayBackground extends AnimationObjectBase {
     resize() {
         this.ctx.canvas.height = this.display.height;
         this.ctx.canvas.width = this.display.width;
-        this.ctx.fillStyle = "rgba(140,163,130,1)";
+        this.ctx.fillStyle = "rgba(138,210,223,1)";
         this.ctx.fillRect(0,0,this.ctx.canvas.width,this.ctx.canvas.height);
     }
 
@@ -26,7 +26,7 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     render() {
-        this.ctx.fillStyle = "rgba(140,163,130,1)";
+        this.ctx.fillStyle = "rgba(138,210,223,1)";
         this.ctx.fillRect(0,0,this.ctx.canvas.width,this.ctx.canvas.height);
     }
 }

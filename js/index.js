@@ -88,7 +88,7 @@ class DisplayBackground extends AnimationObjectBase {
     resize() {
         this.ctx.canvas.height = this.display.height;
         this.ctx.canvas.width = this.display.width;
-        this.ctx.fillStyle = "rgba(140,163,130,1)";
+        this.ctx.fillStyle = "rgba(138,210,223,1)";
         this.ctx.fillRect(0,0,this.ctx.canvas.width,this.ctx.canvas.height);
     }
 
@@ -97,15 +97,159 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     render() {
-        this.ctx.fillStyle = "rgba(140,163,130,1)";
+        this.ctx.fillStyle = "rgba(138,210,223,1)";
         this.ctx.fillRect(0,0,this.ctx.canvas.width,this.ctx.canvas.height);
+    }
+}class LineProcessGroup extends AnimationObjectBase {
+    constructor(root,pos,width,height,mode) {
+        super();
+        this.root = root;
+        this.ctx = this.root.ctx;
+        this.mode = mode;
+        this.pos = pos;
+        this.width = width;
+        this.height = height;
+        this.scale = this.root.scale;
+
+        this.topLeft = [this.pos[0],this.pos[1] - 0.06 * this.scale];
+        this.bottomLeft = [this.pos[0],this.pos[1] + 0.06 * this.scale];
+        this.topRight = [this.pos[0] + this.width,this.pos[1] - 0.06 * this.scale];
+        this.bottomRight = [this.pos[0] + this.width,this.pos[1] + 0.06 * this.scale];
+    }
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        this.renderLine();
+        this.renderMode();
+    }
+
+    renderLine() {
+        this.drawLine(this.topLeft,this.topRight);
+        this.drawLine(this.topLeft,this.bottomLeft);
+        this.drawLine(this.bottomLeft,this.bottomRight);
+    }
+
+    renderMode() {
+        this.ctx.font = "20px Arial";
+        this.ctx.save();
+        this.ctx.translate(this.bottomLeft[0] - 0.02 * this.scale,this.bottomLeft[1] - 0.01 * this.scale);
+        this.ctx.rotate(-Math.PI / 2);
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText(this.mode,0,0);
+        this.ctx.restore();
+    }
+
+    drawLine(pos1,pos2) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(pos1[0],pos1[1]);
+        this.ctx.lineTo(pos2[0],pos2[1]);
+        this.ctx.stroke();
+    }
+}class ProcessBlock extends AnimationObjectBase {
+    constructor(root,pos1,pos2) {
+        super();
+        this.root = root;
+        this.ctx = this.root.ctx;
+        this.pos1 = pos1;
+        this.pos2 = pos2;
+    }
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        this.ctx.fillStyle = "rgba(242,232,60,1)";
+        this.fillRect(this.pos1[0],this.pos1[1],this.pos2[0],this.pos2[1]);
+    }
+}class ProcessHandleGroup extends AnimationObjectBase {
+    constructor(display,pos,selectMode) {
+        super();
+        this.display = display;
+        this.ctx = this.display.ctx;
+        this.processInfoArray = this.display.processInfoArray;
+        this.scale = this.display.scale;
+        this.power = 0.18;
+        this.height = 0.5 * this.scale;
+        this.width = 0.36 * this.scale;
+
+        this.pos = pos;
+        this.selectMode = selectMode;
+
+        this.completeProcess = new LineProcessGroup(this,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,this.height,"Completed");
+    }
+
+    show() {
+
+    }
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        this.renderBottomLine();
+        this.renderTwoSidesLine();
+        this.renderBottomMessage();
+    }
+
+    renderBottomLine() {
+        this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1]);
+    }
+
+    renderBottomMessage() {
+        this.ctx.font = "30px Arial";
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText(this.selectMode,this.pos[0] - 0.04 * this.scale,this.pos[1] + 0.05 * this.scale);
+    }
+    
+    renderTwoSidesLine() {
+        this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1],this.pos[0] - this.power * this.scale,this.pos[1] - 0.5 * this.scale);
+        this.drawLine(this.pos[0] + this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1] - 0.5 * this.scale);
+    }
+
+    drawLine(x1,y1,x2,y2) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1,y1);
+        this.ctx.lineTo(x2,y2);
+        this.ctx.stroke();
+    }
+}class ProcessWaitGroup extends AnimationObjectBase {
+    constructor(display) {
+        super();
+        this.display = display;
+
+        this.ctx = this.display.ctx;
+        this.width = this.display.width;
+        this.height = this.display.height;
+        this.scale = this.display.scale;
+
+        this.groupGraphyics = new LineProcessGroup(this,[0.3 * this.width,0.1 * this.height],0.7 * this.scale,0.1 * this.height,"Waitting");
+    }
+
+    render() {
+        
+    }
+
+    update() {
+        this.render();
     }
 }class Display extends AnimationObjectBase {
     constructor(root) {
         super();
         this.root = root;
-        this.$display = $(`<div class='schedule-display'></div>`)
+        this.ModuleFactory = this.root.ModuleFactory;
+        this.$display = $(`<div class='schedule-display'></div>`);
         this.root.$schedule.append(this.$display);
+
+        this.processInfoArray = this.root.menu.processInfoArray;
+
+        this.width = this.$display.width();
+        this.height = this.$display.height();
+        this.scale = this.height;
 
         this.hide();
 
@@ -117,15 +261,21 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     resize() {
-        this.width = this.$display.width();
-        this.height = this.$display.height();
-        this.scale = this.height;
-
         if(this.displayBackground) this.displayBackground.resize();
     }
 
     show() {
         this.displayBackground = new DisplayBackground(this);
+
+        this.ctx = this.displayBackground.ctx;
+
+        this.processWaitGroup = new ProcessWaitGroup(this);
+        
+        this.processHandleGroups = [];
+        for(let i = 1;i <= 3;i ++ ) {
+            this.processHandleGroups.push(new ProcessHandleGroup(this,[this.width / 4 * i,this.height * 0.75],"FCFS"));
+        }
+        
         this.resize();
 
         this.$display.show();
@@ -236,6 +386,8 @@ class Menu {
                     'burstTime': inputValues[3],
                 });
             });
+
+            outer.processInfoArray = processInfoArray;
         
             outer.hide();
             outer.root.display.show();
@@ -284,8 +436,9 @@ class Result {
     }
 }
 export class Schedule {
-    constructor(id) {
+    constructor(id,ModuleFactory) {
         this.id = id;
+        this.ModuleFactory = ModuleFactory;
         this.$schedule = $('#' + id);
 
         this.menu = new Menu(this);

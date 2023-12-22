@@ -8,15 +8,16 @@
     <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="./css/animation.css">
-    <script type="module" src="./ModuleFiles/schedule.js"></script>
     <title>Schedule Animation</title>
 </head>
 <body>
     <div id="schedule_1">
         <script type="module">
-            import { Schedule } from './js/index.js'
+            import { Schedule } from './js/index.js';
+            import ModuleFactory from './ModuleFiles/schedule.js';
+
             $(document).ready(function() {
-                let schedule = new Schedule('schedule_1');
+                let schedule = new Schedule('schedule_1',ModuleFactory);
             });
         </script>
     </div>  

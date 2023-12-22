@@ -1,6 +1,7 @@
 export class Schedule {
-    constructor(id) {
+    constructor(id,ModuleFactory) {
         this.id = id;
+        this.ModuleFactory = ModuleFactory;
         this.$schedule = $('#' + id);
 
         this.menu = new Menu(this);

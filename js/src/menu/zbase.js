@@ -99,6 +99,8 @@ class Menu {
                     'burstTime': inputValues[3],
                 });
             });
+
+            outer.processInfoArray = processInfoArray;
         
             outer.hide();
             outer.root.display.show();
