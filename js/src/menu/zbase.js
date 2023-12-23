@@ -126,12 +126,13 @@ class Menu {
             }
 
             outer.getSelectMode();
-            outer.processInfoArray = processInfoArray;
+            outer.addProcessArray = processInfoArray;
 
             if(outer.selectMode.length < 1) {
                 alert("请至少选择一种模式");
             } else {
                 outer.hide();
+                outer.root.processRunnerControl.start();
                 outer.root.display.show();
             }
         });

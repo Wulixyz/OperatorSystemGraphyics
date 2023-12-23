@@ -3317,29 +3317,6 @@ function dbg(text) {
       });
     };
 
-  
-  
-  var emval_returnValue = (returnType, destructorsRef, handle) => {
-      var destructors = [];
-      var result = returnType['toWireType'](destructors, handle);
-      if (destructors.length) {
-        // void, primitives and any other types w/o destructors don't need to allocate a handle
-        HEAPU32[((destructorsRef)>>2)] = Emval.toHandle(destructors);
-      }
-      return result;
-    };
-  var __emval_as = (handle, returnType, destructorsRef) => {
-      handle = Emval.toValue(handle);
-      returnType = requireRegisteredType(returnType, 'emval::as');
-      return emval_returnValue(returnType, destructorsRef, handle);
-    };
-
-
-  var __emval_get_property = (handle, key) => {
-      handle = Emval.toValue(handle);
-      key = Emval.toValue(key);
-      return Emval.toHandle(handle[key]);
-    };
 
   var __emval_incref = (handle) => {
       if (handle > 4) {
@@ -3348,29 +3325,6 @@ function dbg(text) {
     };
 
   var __emval_new_array = () => Emval.toHandle([]);
-
-  var emval_symbols = {
-  };
-  
-  var getStringOrSymbol = (address) => {
-      var symbol = emval_symbols[address];
-      if (symbol === undefined) {
-        return readLatin1String(address);
-      }
-      return symbol;
-    };
-  
-  var __emval_new_cstring = (v) => Emval.toHandle(getStringOrSymbol(v));
-
-  var __emval_new_object = () => Emval.toHandle({});
-
-  
-  
-  var __emval_run_destructors = (handle) => {
-      var destructors = Emval.toValue(handle);
-      runDestructors(destructors);
-      __emval_decref(handle);
-    };
 
   var __emval_set_property = (handle, key, value) => {
       handle = Emval.toValue(handle);
@@ -3637,21 +3591,11 @@ var wasmImports = {
   /** @export */
   _embind_register_void: __embind_register_void,
   /** @export */
-  _emval_as: __emval_as,
-  /** @export */
   _emval_decref: __emval_decref,
-  /** @export */
-  _emval_get_property: __emval_get_property,
   /** @export */
   _emval_incref: __emval_incref,
   /** @export */
   _emval_new_array: __emval_new_array,
-  /** @export */
-  _emval_new_cstring: __emval_new_cstring,
-  /** @export */
-  _emval_new_object: __emval_new_object,
-  /** @export */
-  _emval_run_destructors: __emval_run_destructors,
   /** @export */
   _emval_set_property: __emval_set_property,
   /** @export */
@@ -3865,7 +3809,9 @@ var missingLibrarySymbols = [
   'getFunctionArgsName',
   'registerInheritedInstance',
   'unregisterInheritedInstance',
+  'getStringOrSymbol',
   'emval_get_global',
+  'emval_returnValue',
   'emval_lookupTypes',
   'emval_addMethodCaller',
 ];
@@ -4060,9 +4006,7 @@ var unexportedSymbols = [
   'emval_symbols',
   'init_emval',
   'count_emval_handles',
-  'getStringOrSymbol',
   'Emval',
-  'emval_returnValue',
   'emval_methodCallers',
   'reflectConstruct',
 ];

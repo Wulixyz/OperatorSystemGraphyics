@@ -2,7 +2,7 @@ class Display extends AnimationObjectBase {
     constructor(root) {
         super();
         this.root = root;
-        this.ModuleFactory = this.root.ModuleFactory;
+        this.processRunnerControl = this.root.processRunnerControl;
         this.$display = $(`<div class='schedule-display'></div>`);
         this.root.$schedule.append(this.$display);
 
@@ -24,9 +24,8 @@ class Display extends AnimationObjectBase {
     }
 
     show() {
-        this.processInfoArray = this.root.menu.processInfoArray;
+        this.processInfoArray = this.root.menu.addProcessArray;
         this.selectMode = this.root.menu.selectMode;
-        console.log(this.selectMode);
 
         this.displayBackground = new DisplayBackground(this);
 
@@ -38,9 +37,6 @@ class Display extends AnimationObjectBase {
         for(let i = 0;i < this.selectMode.length;i ++ ) {
             this.processHandleGroups.push(new ProcessHandleGroup(this,[this.width / (this.selectMode.length + 1) * (i + 1),this.height * 0.75],this.selectMode[i]));
         }
-        // for(let i = 1;i <= 3;i ++ ) {
-        //     this.processHandleGroups.push(new ProcessHandleGroup(this,[this.width / 4 * i,this.height * 0.75],"FCFS"));
-        // }
         
         this.resize();
 

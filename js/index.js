@@ -374,6 +374,7 @@ class DisplayBackground extends AnimationObjectBase {
     constructor(display) {
         super();
         this.display = display;
+        this.processRunnerControl = this.display.processRunnerControl;
 
         this.ctx = this.display.ctx;
         this.scale = this.display.scale;
@@ -412,6 +413,10 @@ class DisplayBackground extends AnimationObjectBase {
         this.render();
     }
 
+    updateProcessInfo() {
+        this.processInfoArray = this.processRunnerControl.getWaitProcessInfo();
+    }
+
     updateProcessBlockInfo() {
         for(let i = 0;i < this.PBShowCount;i ++ ) {
             if(i < this.processInfoArray.length) this.processBlockArray[i].changeProcessInfo(this.processInfoArray[i]);
@@ -427,7 +432,7 @@ class DisplayBackground extends AnimationObjectBase {
     constructor(root) {
         super();
         this.root = root;
-        this.ModuleFactory = this.root.ModuleFactory;
+        this.processRunnerControl = this.root.processRunnerControl;
         this.$display = $(`<div class='schedule-display'></div>`);
         this.root.$schedule.append(this.$display);
 
@@ -449,9 +454,8 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     show() {
-        this.processInfoArray = this.root.menu.processInfoArray;
+        this.processInfoArray = this.root.menu.addProcessArray;
         this.selectMode = this.root.menu.selectMode;
-        console.log(this.selectMode);
 
         this.displayBackground = new DisplayBackground(this);
 
@@ -463,9 +467,6 @@ class DisplayBackground extends AnimationObjectBase {
         for(let i = 0;i < this.selectMode.length;i ++ ) {
             this.processHandleGroups.push(new ProcessHandleGroup(this,[this.width / (this.selectMode.length + 1) * (i + 1),this.height * 0.75],this.selectMode[i]));
         }
-        // for(let i = 1;i <= 3;i ++ ) {
-        //     this.processHandleGroups.push(new ProcessHandleGroup(this,[this.width / 4 * i,this.height * 0.75],"FCFS"));
-        // }
         
         this.resize();
 
@@ -604,12 +605,13 @@ class Menu {
             }
 
             outer.getSelectMode();
-            outer.processInfoArray = processInfoArray;
+            outer.addProcessArray = processInfoArray;
 
             if(outer.selectMode.length < 1) {
                 alert("请至少选择一种模式");
             } else {
                 outer.hide();
+                outer.root.processRunnerControl.start();
                 outer.root.display.show();
             }
         });
@@ -671,7 +673,126 @@ class Menu {
         this.$inputForm.hide();
     }
 }
-class Result {
+class ProcessRunner extends AnimationObjectBase {
+    constructor(root,mode) {
+        super();
+        this.root = root;
+        this.mode = mode;
+        this.ModuleFactory = this.root.ModuleFactory;
+        this.addProcessArray = this.root.addProcessArray;
+
+        this.instance = new this.ModuleFactory();
+
+        this.isReady = false;
+
+        this.start();
+    }
+
+    start() {
+        this.instance.onRuntimeInitialized = () => {
+            this.startInstance();
+
+            this.waitProcessInfoArray = this.getWaitProcessInfo();
+            this.handleProcessInfoArray = this.getHandleProcessInfo();
+            this.completeProcessInfoArray = this.getCompleteProcessInfo();
+
+            this.isReady = true;
+        };
+    }
+
+    startInstance() {
+        this.instance.selectMode(this.mode);
+        
+        const processes = this.addProcessArray;
+        for(let i = 0;i < processes.length;i ++ ) {
+            this.instance.addWaitProcess(processes[i]['processName'],processes[i]['arrivalTime'],processes[i]['priority'],processes[i]['burstTime']);
+        }
+    } 
+
+    update() {
+        if(this.isReady) {
+            this.instance.runProcess(this.timedelta);
+
+            this.updateProcessInfo();
+        }
+    }
+
+    updateProcessInfo() {
+        this.waitProcessInfoArray = this.getWaitProcessInfo();
+        this.handleProcessInfoArray = this.getHandleProcessInfo();
+        this.completeProcessInfoArray = this.getCompleteProcessInfo();
+    }
+
+    getWaitProcessInfo() {
+        let processInfoArray = [];
+        const processInfo = this.instance.getWaitProcess();
+        for(let i = 0;i < processInfo.length;i ++ ) {
+            processInfoArray.push({
+                'processName': processInfo[i].name,
+                'arrivalTime': processInfo[i].arrivalTime,
+                'priority': processInfo[i].priority,
+                'burstTime': processInfo[i].burstTime,
+            });
+        }
+        return processInfoArray;
+    }
+
+    getHandleProcessInfo() {
+        let processInfoArray = [];
+        const processInfo = this.instance.getHandleProcess();
+        for(let i = 0;i < processInfo.length;i ++ ) {
+            processInfoArray.push({
+                'processName': processInfo[i].name,
+                'arrivalTime': processInfo[i].arrivalTime,
+                'priority': processInfo[i].priority,
+                'burstTime': processInfo[i].burstTime,
+            });
+        }
+        return processInfoArray;
+    }
+
+    getCompleteProcessInfo() {
+        let processInfoArray = [];
+        const processInfo = this.instance.getCompleteProcess();
+        for(let i = 0;i < processInfo.length;i ++ ) {
+            processInfoArray.push({
+                'processName': processInfo[i].name,
+                'arrivalTime': processInfo[i].arrivalTime,
+                'priority': processInfo[i].priority,
+                'burstTime': processInfo[i].burstTime,
+            });
+        }
+        return processInfoArray;
+    }
+}class ProcessRunnerControl {
+    constructor(root) {
+        this.root = root;
+        this.ModuleFactory = this.root.ModuleFactory;
+
+        this.processRunners = {};   
+    }
+
+    start() {
+        this.addProcessArray = this.root.menu.addProcessArray;
+        this.selectMode = this.root.menu.selectMode;
+
+        for(let i = 0;i < this.selectMode.length;i ++ ) {
+            this.processRunners[this.selectMode[i]] = new ProcessRunner(this,this.selectMode[i]);
+        }
+    }
+
+    getWaitProcessInfo() {
+        return this.processRunners[this.selectMode[0]].waitProcessInfoArray;
+    }
+
+    getHandleProcessInfo(mode) {
+        return this.processRunners[mode].handleProcessInfoArray;
+    }
+
+    getCompleteProcessInfo(mode) {
+        return this.processRunners[mode].completeProcessInfoArray;
+    }
+}class Result {
     constructor() {
         
     }
@@ -683,6 +804,7 @@ export class Schedule {
         this.$schedule = $('#' + id);
 
         this.menu = new Menu(this);
+        this.processRunnerControl = new ProcessRunnerControl(this);
         this.display = new Display(this);
         this.result = new Result(this);
 

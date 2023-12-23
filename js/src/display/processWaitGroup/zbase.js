@@ -2,6 +2,7 @@ class ProcessWaitGroup extends AnimationObjectBase {
     constructor(display) {
         super();
         this.display = display;
+        this.processRunnerControl = this.display.processRunnerControl;
 
         this.ctx = this.display.ctx;
         this.scale = this.display.scale;
@@ -38,6 +39,10 @@ class ProcessWaitGroup extends AnimationObjectBase {
         this.updateProcessBlockInfo();
         this.updateOverflowProcessGroupShow();
         this.render();
+    }
+
+    updateProcessInfo() {
+        this.processInfoArray = this.processRunnerControl.getWaitProcessInfo();
     }
 
     updateProcessBlockInfo() {
