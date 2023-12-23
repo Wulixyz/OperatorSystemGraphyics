@@ -1,37 +1,32 @@
-class ProcessWaitGroup extends AnimationObjectBase {
-    constructor(display) {
+class ProcessCompleteGroup extends AnimationObjectBase {
+    constructor(display,pos,width,height) {
         super();
         this.display = display;
-
         this.ctx = this.display.ctx;
+        this.pos = pos;
+        this.width = width;
+        this.height = height;
         this.scale = this.display.scale;
-        this.width = 0.7 * this.scale;
-        this.height = 0.14 * this.scale;
-        this.pos = [0.3 * this.display.width,0.1 * this.display.height];
 
-        this.PBWidth = this.width / 6;
+        this.PBwidth = this.width / 4;
         this.PBheight = this.height;
-        this.PBShowCount = 5;
+        this.PBShowCount = 3;
         this.processInfoArray = this.display.processInfoArray;
         this.processBlockArray = [];
-
+        
         this.start();
     }
 
     start() {
-        this.groupGraphyics = new LineProcessGroup(this,this.pos,this.width,this.height,"Waitting");
+        this.groupGraphyics = new LineProcessGroup(this,this.pos,this.width,this.height,"Completed");
 
         let PBpos = this.pos;
         for(let i = 0;i < this.PBShowCount;i ++ ) {
-            this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBWidth,this.PBheight));
-            PBpos = [PBpos[0] + this.PBWidth + 0.02 * this.scale,PBpos[1]];
+            this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBwidth,this.PBheight));
+            PBpos = [PBpos[0] + this.PBwidth + 0.01 * this.scale,PBpos[1]];
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,PBpos,this.PBWidth,this.PBheight,'line');
-    }
-
-    render() {
-        
     }
 
     update() {
@@ -51,4 +46,8 @@ class ProcessWaitGroup extends AnimationObjectBase {
         if(this.processInfoArray.length > this.PBShowCount) this.overflowProcessGroup.show();
         else this.overflowProcessGroup.hide();
     }
- }
+
+    render() {
+
+    }
+}

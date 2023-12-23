@@ -149,6 +149,55 @@ class DisplayBackground extends AnimationObjectBase {
         this.ctx.lineTo(pos2[0],pos2[1]);
         this.ctx.stroke();
     }
+}class OverflowProcessGroup extends AnimationObjectBase {
+    constructor(display,pos,width,height,mode) {
+        super();
+        this.display = display;
+        this.ctx = this.display.ctx;
+        this.scale = this.display.scale;
+        this.pos = pos;
+        this.width = width;
+        this.height = height;
+        this.mode = mode;
+
+        this.isShow = false;
+
+        this.start();
+    }
+
+    start() {
+
+    }
+
+    render() {
+        if(this.mode === "line") {
+            this.ctx.font = "40px Arial";
+            this.ctx.fillStyle = "black";
+            this.ctx.fillText(". . .",this.pos[0],this.pos[1]);
+        } else if(this.mode === "vertical") {
+            this.ctx.font = "40px Arial";
+            this.ctx.save();
+            this.ctx.translate(this.pos[0],this.pos[1]);
+            this.ctx.rotate(-Math.PI / 2);
+            this.ctx.fillStyle = "black";
+            this.ctx.fillText(". . .",0,0);
+            this.ctx.restore();
+        }
+    }
+
+    update() {
+        if(this.isShow) {
+            this.render();
+        }
+    }
+
+    show() {
+        this.isShow = true;
+    }
+
+    hide() {
+        this.isShow = false;
+    }
 }class ProcessBlock extends AnimationObjectBase {
     constructor(root,pos,width,height) {
         super();
@@ -160,10 +209,19 @@ class DisplayBackground extends AnimationObjectBase {
         this.pos = pos;
 
         this.pos1 = [this.pos[0],this.pos[1] - this.height / 2];
+        this.processNamePos = [this.pos[0] + this.width / 5 * 2,this.pos[1]];
+
+        this.processInfo = null;
+    }
+
+    changeProcessInfo(processInfo) {
+        this.processInfo = processInfo;
     }
 
     update() {
-        this.render();
+        if(this.processInfo != null) {
+            this.render();
+        }
     }
 
     render() {
@@ -177,6 +235,60 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     renderProcessName() {
+        this.ctx.font = "20px Arial";
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText(this.processInfo['processName'],this.processNamePos[0],this.processNamePos[1]);
+    }
+}class ProcessCompleteGroup extends AnimationObjectBase {
+    constructor(display,pos,width,height) {
+        super();
+        this.display = display;
+        this.ctx = this.display.ctx;
+        this.pos = pos;
+        this.width = width;
+        this.height = height;
+        this.scale = this.display.scale;
+
+        this.PBwidth = this.width / 4;
+        this.PBheight = this.height;
+        this.PBShowCount = 3;
+        this.processInfoArray = this.display.processInfoArray;
+        this.processBlockArray = [];
+        
+        this.start();
+    }
+
+    start() {
+        this.groupGraphyics = new LineProcessGroup(this,this.pos,this.width,this.height,"Completed");
+
+        let PBpos = this.pos;
+        for(let i = 0;i < this.PBShowCount;i ++ ) {
+            this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBwidth,this.PBheight));
+            PBpos = [PBpos[0] + this.PBwidth + 0.01 * this.scale,PBpos[1]];
+        }
+
+        this.overflowProcessGroup = new OverflowProcessGroup(this.display,PBpos,this.PBWidth,this.PBheight,'line');
+    }
+
+    update() {
+        this.updateProcessBlockInfo();
+        this.updateOverflowProcessGroupShow();
+        this.render();
+    }
+
+    updateProcessBlockInfo() {
+        for(let i = 0;i < this.PBShowCount;i ++ ) {
+            if(i < this.processInfoArray.length) this.processBlockArray[i].changeProcessInfo(this.processInfoArray[i]);
+            else this.processBlockArray[i].changeProcessInfo(null);
+        }
+    }
+
+    updateOverflowProcessGroupShow() {
+        if(this.processInfoArray.length > this.PBShowCount) this.overflowProcessGroup.show();
+        else this.overflowProcessGroup.hide();
+    }
+
+    render() {
 
     }
 }class ProcessHandleGroup extends AnimationObjectBase {
@@ -184,7 +296,6 @@ class DisplayBackground extends AnimationObjectBase {
         super();
         this.display = display;
         this.ctx = this.display.ctx;
-        this.processInfoArray = this.display.processInfoArray;
         this.scale = this.display.scale;
         this.power = 0.18;
         this.height = 0.5 * this.scale;
@@ -193,22 +304,49 @@ class DisplayBackground extends AnimationObjectBase {
         this.pos = pos;
         this.selectMode = selectMode;
 
-        this.completeProcess = new LineProcessGroup(this,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale,"Completed");
+        this.PBwidth = this.width;
+        this.PBheight = this.height / 7;
+        this.PBShowCount = 5;
+        this.processInfoArray = this.display.processInfoArray;
+        this.processBlockArray = [];
+
+        this.start();
     }
 
-    show() {
+    start() {
+        this.completeProcessGroup = new ProcessCompleteGroup(this.display,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale);
 
+        let PBpos = [this.pos[0] - this.width / 2,this.pos[1] - this.PBheight / 2];
+        for(let i = 0;i < this.PBShowCount;i ++ ) {
+            this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBwidth,this.PBheight));
+            PBpos = [PBpos[0],PBpos[1] - this.PBheight - 0.02 * this.scale];
+        }
+
+        this.overflowProcessGroup = new OverflowProcessGroup(this.display,[this.pos[0],PBpos[1] + 0.04 * this.scale],this.PBwidth,this.PBheight,'vertical');
     }
 
     update() {
+        this.updateProcessBlockInfo();
+        this.updateOverflowProcessGroupShow();
         this.render();
+    }
+
+    updateProcessBlockInfo() {
+        for(let i = 0;i < this.PBShowCount;i ++ ) {
+            if(i < this.processInfoArray.length) this.processBlockArray[i].changeProcessInfo(this.processInfoArray[i]);
+            else this.processBlockArray[i].changeProcessInfo(null);
+        }
+    }
+
+    updateOverflowProcessGroupShow() {
+        if(this.processInfoArray.length > this.PBShowCount) this.overflowProcessGroup.show();
+        else this.overflowProcessGroup.hide();
     }
 
     render() {
         this.renderBottomLine();
         this.renderTwoSidesLine();
         this.renderBottomMessage();
-        this.renderProcessBlock();
     }
 
     renderBottomLine() {
@@ -224,11 +362,6 @@ class DisplayBackground extends AnimationObjectBase {
     renderTwoSidesLine() {
         this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1],this.pos[0] - this.power * this.scale,this.pos[1] - 0.5 * this.scale);
         this.drawLine(this.pos[0] + this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1] - 0.5 * this.scale);
-    }
-
-    renderProcessBlock() {
-        // this.proccessBlock = new ProcessBlock(this,this.pos,[this.pos[0] + this.width,this.pos[1] + this.height]);
-
     }
 
     drawLine(x1,y1,x2,y2) {
@@ -248,11 +381,25 @@ class DisplayBackground extends AnimationObjectBase {
         this.height = 0.14 * this.scale;
         this.pos = [0.3 * this.display.width,0.1 * this.display.height];
 
-        this.PBWidth = this.width / 5;
-        this.height = this.height;
-        this.waitProcessInfo = this.display.processInfoArray;
+        this.PBWidth = this.width / 6;
+        this.PBheight = this.height;
+        this.PBShowCount = 5;
+        this.processInfoArray = this.display.processInfoArray;
+        this.processBlockArray = [];
 
+        this.start();
+    }
+
+    start() {
         this.groupGraphyics = new LineProcessGroup(this,this.pos,this.width,this.height,"Waitting");
+
+        let PBpos = this.pos;
+        for(let i = 0;i < this.PBShowCount;i ++ ) {
+            this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBWidth,this.PBheight));
+            PBpos = [PBpos[0] + this.PBWidth + 0.02 * this.scale,PBpos[1]];
+        }
+
+        this.overflowProcessGroup = new OverflowProcessGroup(this.display,PBpos,this.PBWidth,this.PBheight,'line');
     }
 
     render() {
@@ -260,9 +407,23 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     update() {
+        this.updateProcessBlockInfo();
+        this.updateOverflowProcessGroupShow();
         this.render();
     }
-}class Display extends AnimationObjectBase {
+
+    updateProcessBlockInfo() {
+        for(let i = 0;i < this.PBShowCount;i ++ ) {
+            if(i < this.processInfoArray.length) this.processBlockArray[i].changeProcessInfo(this.processInfoArray[i]);
+            else this.processBlockArray[i].changeProcessInfo(null);
+        }
+    }
+
+    updateOverflowProcessGroupShow() {
+        if(this.processInfoArray.length > this.PBShowCount) this.overflowProcessGroup.show();
+        else this.overflowProcessGroup.hide();
+    }
+ }class Display extends AnimationObjectBase {
     constructor(root) {
         super();
         this.root = root;

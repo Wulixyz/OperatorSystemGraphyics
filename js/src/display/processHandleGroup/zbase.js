@@ -3,7 +3,6 @@ class ProcessHandleGroup extends AnimationObjectBase {
         super();
         this.display = display;
         this.ctx = this.display.ctx;
-        this.processInfoArray = this.display.processInfoArray;
         this.scale = this.display.scale;
         this.power = 0.18;
         this.height = 0.5 * this.scale;
@@ -12,22 +11,49 @@ class ProcessHandleGroup extends AnimationObjectBase {
         this.pos = pos;
         this.selectMode = selectMode;
 
-        this.completeProcess = new LineProcessGroup(this,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale,"Completed");
+        this.PBwidth = this.width;
+        this.PBheight = this.height / 7;
+        this.PBShowCount = 5;
+        this.processInfoArray = this.display.processInfoArray;
+        this.processBlockArray = [];
+
+        this.start();
     }
 
-    show() {
+    start() {
+        this.completeProcessGroup = new ProcessCompleteGroup(this.display,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale);
 
+        let PBpos = [this.pos[0] - this.width / 2,this.pos[1] - this.PBheight / 2];
+        for(let i = 0;i < this.PBShowCount;i ++ ) {
+            this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBwidth,this.PBheight));
+            PBpos = [PBpos[0],PBpos[1] - this.PBheight - 0.02 * this.scale];
+        }
+
+        this.overflowProcessGroup = new OverflowProcessGroup(this.display,[this.pos[0],PBpos[1] + 0.04 * this.scale],this.PBwidth,this.PBheight,'vertical');
     }
 
     update() {
+        this.updateProcessBlockInfo();
+        this.updateOverflowProcessGroupShow();
         this.render();
+    }
+
+    updateProcessBlockInfo() {
+        for(let i = 0;i < this.PBShowCount;i ++ ) {
+            if(i < this.processInfoArray.length) this.processBlockArray[i].changeProcessInfo(this.processInfoArray[i]);
+            else this.processBlockArray[i].changeProcessInfo(null);
+        }
+    }
+
+    updateOverflowProcessGroupShow() {
+        if(this.processInfoArray.length > this.PBShowCount) this.overflowProcessGroup.show();
+        else this.overflowProcessGroup.hide();
     }
 
     render() {
         this.renderBottomLine();
         this.renderTwoSidesLine();
         this.renderBottomMessage();
-        this.renderProcessBlock();
     }
 
     renderBottomLine() {
@@ -43,11 +69,6 @@ class ProcessHandleGroup extends AnimationObjectBase {
     renderTwoSidesLine() {
         this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1],this.pos[0] - this.power * this.scale,this.pos[1] - 0.5 * this.scale);
         this.drawLine(this.pos[0] + this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1] - 0.5 * this.scale);
-    }
-
-    renderProcessBlock() {
-        // this.proccessBlock = new ProcessBlock(this,this.pos,[this.pos[0] + this.width,this.pos[1] + this.height]);
-
     }
 
     drawLine(x1,y1,x2,y2) {

@@ -9,10 +9,19 @@ class ProcessBlock extends AnimationObjectBase {
         this.pos = pos;
 
         this.pos1 = [this.pos[0],this.pos[1] - this.height / 2];
+        this.processNamePos = [this.pos[0] + this.width / 5 * 2,this.pos[1]];
+
+        this.processInfo = null;
+    }
+
+    changeProcessInfo(processInfo) {
+        this.processInfo = processInfo;
     }
 
     update() {
-        this.render();
+        if(this.processInfo != null) {
+            this.render();
+        }
     }
 
     render() {
@@ -26,6 +35,8 @@ class ProcessBlock extends AnimationObjectBase {
     }
 
     renderProcessName() {
-
+        this.ctx.font = "20px Arial";
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText(this.processInfo['processName'],this.processNamePos[0],this.processNamePos[1]);
     }
 }
