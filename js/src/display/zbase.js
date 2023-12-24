@@ -1,6 +1,5 @@
-class Display extends AnimationObjectBase {
+class Display{
     constructor(root) {
-        super();
         this.root = root;
         this.processRunnerControl = this.root.processRunnerControl;
         this.$display = $(`<div class='schedule-display'></div>`);
@@ -43,5 +42,13 @@ class Display extends AnimationObjectBase {
 
     hide() {
         this.$display.hide();
+    }
+
+    destroy() {
+        this.displayBackground.destroy();
+        this.processWaitGroup.destroy();
+        for(let i = 0;i < this.processHandleGroups.length;i ++ ) {
+            this.processHandleGroups[i].destroy();
+        }
     }
 }

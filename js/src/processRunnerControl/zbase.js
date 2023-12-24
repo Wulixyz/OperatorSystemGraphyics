@@ -13,6 +13,8 @@ class ProcessRunnerControl {
         for(let i = 0;i < this.selectMode.length;i ++ ) {
             this.processRunners[this.selectMode[i]] = new ProcessRunner(this,this.selectMode[i]);
         }
+
+        this.processStopper = new ProcessStopper(this);
     }
 
     getWaitProcessInfo() {

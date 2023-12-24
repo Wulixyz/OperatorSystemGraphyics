@@ -292,6 +292,14 @@ class DisplayBackground extends AnimationObjectBase {
         else this.overflowProcessGroup.hide();
     }
 
+    on_destroy() {
+        this.groupGraphyics.destroy();
+        for(let i = 0;i < this.processBlockArray.length;i ++ ) {
+            this.processBlockArray[i].destroy();
+        }
+        this.overflowProcessGroup.destroy();
+    }
+
     render() {
 
     }
@@ -378,6 +386,14 @@ class DisplayBackground extends AnimationObjectBase {
         this.ctx.lineTo(x2,y2);
         this.ctx.stroke();
     }
+
+    on_destroy() {
+        this.completeProcessGroup.destroy();
+        for(let i = 0;i < this.processBlockArray.length;i ++ ) {
+            this.processBlockArray[i].destroy();
+        }
+        this.overflowProcessGroup.destroy();
+    }
 }class ProcessWaitGroup extends AnimationObjectBase {
     constructor(display) {
         super();
@@ -436,9 +452,16 @@ class DisplayBackground extends AnimationObjectBase {
         if(this.processInfoArray.length > this.PBShowCount) this.overflowProcessGroup.show();
         else this.overflowProcessGroup.hide();
     }
- }class Display extends AnimationObjectBase {
+
+    on_destroy() {
+        this.groupGraphyics.destroy();
+        for(let i = 0;i < this.processBlockArray.length;i ++ ) {
+            this.processBlockArray[i].destroy();
+        }
+        this.overflowProcessGroup.destroy();
+    }
+ }class Display{
     constructor(root) {
-        super();
         this.root = root;
         this.processRunnerControl = this.root.processRunnerControl;
         this.$display = $(`<div class='schedule-display'></div>`);
@@ -481,6 +504,14 @@ class DisplayBackground extends AnimationObjectBase {
 
     hide() {
         this.$display.hide();
+    }
+
+    destroy() {
+        this.displayBackground.destroy();
+        this.processWaitGroup.destroy();
+        for(let i = 0;i < this.processHandleGroups.length;i ++ ) {
+            this.processHandleGroups[i].destroy();
+        }
     }
 }
 class Menu {
@@ -684,6 +715,8 @@ class ProcessRunner extends AnimationObjectBase {
         this.completeProcessInfoArray = [];
 
         this.isReady = false;
+
+        this.isCompleted = false;
     }
 
     start() {
@@ -709,6 +742,7 @@ class ProcessRunner extends AnimationObjectBase {
             this.instance.runProcess(this.timedelta / 1000);
 
             this.updateProcessInfo();
+            this.updateCompleted();
         }
     }
 
@@ -716,6 +750,10 @@ class ProcessRunner extends AnimationObjectBase {
         this.waitProcessInfoArray = this.getWaitProcessInfo();
         this.handleProcessInfoArray = this.getHandleProcessInfo();
         this.completeProcessInfoArray = this.getCompleteProcessInfo();
+    }
+
+    updateCompleted() {
+        if(this.waitProcessInfoArray < 1 && this.handleProcessInfoArray.length < 1) this.isCompleted = true;
     }
 
     getWaitProcessInfo() {
@@ -755,9 +793,62 @@ class ProcessRunner extends AnimationObjectBase {
                 'arrivalTime': processInfo[i].arrivalTime,
                 'priority': processInfo[i].priority,
                 'burstTime': processInfo[i].burstTime,
+                'completeTime': processInfo[i].completeTime,
             });
         }
         return processInfoArray;
+    }
+}class ProcessStopper extends AnimationObjectBase {
+    constructor(root) {
+        super();
+        this.root = root;
+        this.processRunners = this.root.processRunners;
+
+        this.isAllCompleted = false;
+        this.completeTime = 0;
+        this.showResultTime = 3;
+    }
+
+    start() {
+
+    }
+
+    update() {
+        if(Object.keys(this.processRunners).length > 0) {
+            this.updateIsAllComplete();
+            this.updateCompleteTime();
+        }
+    }
+
+    updateIsAllComplete() {
+        let isAllCompleted = true;
+        for(let key in this.processRunners) {
+            if(this.processRunners.hasOwnProperty(key)) {
+                isAllCompleted = isAllCompleted && this.processRunners[key].isCompleted;
+            }
+        }
+
+        this.isAllCompleted = isAllCompleted;
+    }
+
+    updateCompleteTime() {
+        if(this.isAllCompleted === true) {
+            this.completeTime += this.timedelta / 1000;
+        }
+
+        if(this.completeTime >= this.showResultTime) {
+            console.log("All Complete");
+            this.root.root.display.destroy();
+            this.root.root.display.hide();
+            this.root.root.result.start();
+            this.destroy();
+        }
+    }
+
+    on_destroy() {
+        for(let key in this.processRunners) {
+            this.processRunners[key].destroy();
+        }
     }
 }class ProcessRunnerControl {
     constructor(root) {
@@ -774,6 +865,8 @@ class ProcessRunner extends AnimationObjectBase {
         for(let i = 0;i < this.selectMode.length;i ++ ) {
             this.processRunners[this.selectMode[i]] = new ProcessRunner(this,this.selectMode[i]);
         }
+
+        this.processStopper = new ProcessStopper(this);
     }
 
     getWaitProcessInfo() {
@@ -787,9 +880,89 @@ class ProcessRunner extends AnimationObjectBase {
     getCompleteProcessInfo(mode) {
         return this.processRunners[mode].completeProcessInfoArray;
     }
+}class CompleteProcessResult {
+    constructor(root,mode,processInfoArray) {
+        this.root = root;
+        this.mode = mode;
+        this.processInfoArray = processInfoArray;
+
+        this.$completeProcessResult = $(`
+            <div class="complete-result d-grid gap-2.5 col-6 mx-auto">
+                <div class="complete-result-card card">
+                    <div class="complete-result-title card-header">${this.mode}运行结果</div>
+                    <ul class="complete-result-body list-group list-group-flush"></ul>
+                </div>
+            </div>
+            
+        `);
+
+        this.$completeResultBody = this.$completeProcessResult.find('.complete-result-body');
+        this.$completeResultCard = this.$completeProcessResult.find('.complete-result-card');
+
+        this.root.$result.append(this.$completeProcessResult);
+
+        this.start();
+    }
+
+    start() {
+        for(let i = 0;i < this.processInfoArray.length;i ++) {
+            let p = this.processInfoArray[i];
+            this.$completeResultBody.append($(`
+                <li class="complete-result-info list-group-item">
+                    进程 ${p.processName} 于 ${p.completeTime.toFixed(3)} 完成。周转时间为 ${(p.completeTime - p.arrivalTime).toFixed(3)}。带权周转时间为 ${((p.completeTime - p.arrivalTime) / p.burstTime).toFixed(3)}
+                </li>
+            `));
+        } 
+
+        let totalTurnaroundTime = 0,totalTurnaroundTimeWithWeight = 0;
+        for(let p of this.processInfoArray) {
+            totalTurnaroundTime += p.completeTime - p.arrivalTime;
+            totalTurnaroundTimeWithWeight += (p.completeTime - p.arrivalTime) / p.burstTime;
+        }
+
+        this.$completeResultCard.append($(`
+            <div class="card-footer">
+                平均周转时间为 ${(totalTurnaroundTime / this.processInfoArray.length).toFixed(3)},平均带权周转时间为 ${(totalTurnaroundTimeWithWeight / this.processInfoArray.length).toFixed(3)}
+            </div>
+        `));
+    }
+
+    show() {
+
+    }
+
+    hide() {
+
+    }
 }class Result {
-    constructor() {
-        
+    constructor(root) {
+        this.root = root;
+        this.$result = $(`<div class="result"></div>`);
+        this.root.$schedule.append(this.$result);
+
+        this.menu = this.root.menu;
+        this.processRunnerControl = this.root.processRunnerControl;
+
+        this.completeProcess = {};
+        this.processInfoArray = [];
+
+        this.hide();
+    }
+
+    start() {
+        this.selectMode = this.menu.selectMode;
+        for(let i = 0;i < this.selectMode.length;i ++ ) {
+            this.processInfoArray.push(new CompleteProcessResult(this,this.selectMode[i],this.processRunnerControl.getCompleteProcessInfo(this.selectMode[i])));
+        }
+        this.show();
+    }
+
+    show() {
+        this.$result.show();
+    }
+
+    hide() {
+        this.$result.hide();
     }
 }
 export class Schedule {

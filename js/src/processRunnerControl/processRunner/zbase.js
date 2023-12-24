@@ -14,6 +14,8 @@ class ProcessRunner extends AnimationObjectBase {
         this.completeProcessInfoArray = [];
 
         this.isReady = false;
+
+        this.isCompleted = false;
     }
 
     start() {
@@ -39,6 +41,7 @@ class ProcessRunner extends AnimationObjectBase {
             this.instance.runProcess(this.timedelta / 1000);
 
             this.updateProcessInfo();
+            this.updateCompleted();
         }
     }
 
@@ -46,6 +49,10 @@ class ProcessRunner extends AnimationObjectBase {
         this.waitProcessInfoArray = this.getWaitProcessInfo();
         this.handleProcessInfoArray = this.getHandleProcessInfo();
         this.completeProcessInfoArray = this.getCompleteProcessInfo();
+    }
+
+    updateCompleted() {
+        if(this.waitProcessInfoArray < 1 && this.handleProcessInfoArray.length < 1) this.isCompleted = true;
     }
 
     getWaitProcessInfo() {
@@ -85,6 +92,7 @@ class ProcessRunner extends AnimationObjectBase {
                 'arrivalTime': processInfo[i].arrivalTime,
                 'priority': processInfo[i].priority,
                 'burstTime': processInfo[i].burstTime,
+                'completeTime': processInfo[i].completeTime,
             });
         }
         return processInfoArray;

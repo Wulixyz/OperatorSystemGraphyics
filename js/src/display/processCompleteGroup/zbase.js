@@ -53,6 +53,14 @@ class ProcessCompleteGroup extends AnimationObjectBase {
         else this.overflowProcessGroup.hide();
     }
 
+    on_destroy() {
+        this.groupGraphyics.destroy();
+        for(let i = 0;i < this.processBlockArray.length;i ++ ) {
+            this.processBlockArray[i].destroy();
+        }
+        this.overflowProcessGroup.destroy();
+    }
+
     render() {
 
     }

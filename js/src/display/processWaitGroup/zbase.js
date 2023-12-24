@@ -56,4 +56,12 @@ class ProcessWaitGroup extends AnimationObjectBase {
         if(this.processInfoArray.length > this.PBShowCount) this.overflowProcessGroup.show();
         else this.overflowProcessGroup.hide();
     }
+
+    on_destroy() {
+        this.groupGraphyics.destroy();
+        for(let i = 0;i < this.processBlockArray.length;i ++ ) {
+            this.processBlockArray[i].destroy();
+        }
+        this.overflowProcessGroup.destroy();
+    }
  }

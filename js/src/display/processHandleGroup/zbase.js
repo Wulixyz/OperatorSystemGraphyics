@@ -81,4 +81,12 @@ class ProcessHandleGroup extends AnimationObjectBase {
         this.ctx.lineTo(x2,y2);
         this.ctx.stroke();
     }
+
+    on_destroy() {
+        this.completeProcessGroup.destroy();
+        for(let i = 0;i < this.processBlockArray.length;i ++ ) {
+            this.processBlockArray[i].destroy();
+        }
+        this.overflowProcessGroup.destroy();
+    }
 }
