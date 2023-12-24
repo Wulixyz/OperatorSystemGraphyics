@@ -2,6 +2,7 @@ class ProcessHandleGroup extends AnimationObjectBase {
     constructor(display,pos,selectMode) {
         super();
         this.display = display;
+        this.processRunnerControl = this.display.processRunnerControl;
         this.ctx = this.display.ctx;
         this.scale = this.display.scale;
         this.power = 0.18;
@@ -14,14 +15,12 @@ class ProcessHandleGroup extends AnimationObjectBase {
         this.PBwidth = this.width;
         this.PBheight = this.height / 7;
         this.PBShowCount = 5;
-        this.processInfoArray = this.display.processInfoArray;
+        this.processInfoArray = this.processRunnerControl.getHandleProcessInfo(this.selectMode);
         this.processBlockArray = [];
-
-        this.start();
     }
 
     start() {
-        this.completeProcessGroup = new ProcessCompleteGroup(this.display,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale);
+        this.completeProcessGroup = new ProcessCompleteGroup(this.display,this,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale);
 
         let PBpos = [this.pos[0] - this.width / 2,this.pos[1] - this.PBheight / 2];
         for(let i = 0;i < this.PBShowCount;i ++ ) {
@@ -33,9 +32,14 @@ class ProcessHandleGroup extends AnimationObjectBase {
     }
 
     update() {
+        this.updateProcessInfo();
         this.updateProcessBlockInfo();
-        this.updateOverflowProcessGroupShow();
+        this.updateOverflowProcessGroupShow(this.selectMode);
         this.render();
+    }
+
+    updateProcessInfo() {
+        this.processInfoArray = this.processRunnerControl.getHandleProcessInfo(this.selectMode);
     }
 
     updateProcessBlockInfo() {

@@ -10,8 +10,6 @@ class OverflowProcessGroup extends AnimationObjectBase {
         this.mode = mode;
 
         this.isShow = false;
-
-        this.start();
     }
 
     start() {

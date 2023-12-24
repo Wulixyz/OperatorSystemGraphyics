@@ -7,7 +7,7 @@ class Menu {
                     <div class='input-and-random'>
                         <div class="input-form col-md-4 mx-auto"></div>
                         <div class="select-by-input d-grid gap-2.5 col-6 mx-auto">
-                            <button class="add-info-button btn btn-success" type="button" style="margin:1%">+add</button>
+                            <button class="add-info-button btn btn-success" type="button">+add</button>
                             <button class="select-by-input-button btn btn-primary" type="button">自己输入</button>
                         </div>
                         <div class="select-by-random d-grid gap-2.5 col-6 mx-auto">
@@ -69,21 +69,23 @@ class Menu {
         let outer = this;
 
         this.$selectByInputButton.click(() => {
-            outer.showSelectByInput();
+            outer.$inputForm.show();
+            outer.$addInfoButton.show();
 
             outer.isRandom = false;
 
-            outer.$selectByRandom.hide();
-            outer.$selectByInputButton.hide();
+            outer.$selectByRandomButton.css('background-color',"rgb(54,108,251)");
+            outer.$selectByInputButton.css('background-color',"rgb(44,92,213)");
         });
 
         this.$selectByRandomButton.click(() => {
-            outer.hideSelectByInput();
+            outer.$inputForm.hide();
+            outer.$addInfoButton.hide();
 
             outer.isRandom = true;
             
-            outer.$selectByRandom.show();
-            outer.$selectByInputButton.show();
+            outer.$selectByInputButton.css('background-color',"rgb(54,108,251)");
+            outer.$selectByRandomButton.css('background-color',"rgb(44,92,213)");
         });
 
         this.$addInfoButton.click(() => {
@@ -105,9 +107,9 @@ class Menu {
                     }).get();
                     processInfoArray.push({
                         'processName': inputValues[0],
-                        'arrivalTime': inputValues[1],
-                        'priority': inputValues[2],
-                        'burstTime': inputValues[3],
+                        'arrivalTime': parseFloat(inputValues[1]),
+                        'priority': parseFloat(inputValues[2]),
+                        'burstTime': parseFloat(inputValues[3]),
                     });
                 });
             } else {
@@ -117,9 +119,9 @@ class Menu {
                 for (var i = 1; i <= processCount; i++) {
                     processInfoArray.push({
                         'processName': "P" + dividedId,
-                        'arrivalTime': this.generateRandomDouble(1,10),
-                        'priority': this.generateRandomDouble(1,10),
-                        'burstTime': this.generateRandomDouble(1,10),
+                        'arrivalTime': this.generateRandomDouble(1,20),
+                        'priority': this.generateRandomDouble(1,20),
+                        'burstTime': this.generateRandomDouble(1,20),
                     });
                     dividedId ++;
                 }
@@ -131,6 +133,7 @@ class Menu {
             if(outer.selectMode.length < 1) {
                 alert("请至少选择一种模式");
             } else {
+                console.log(outer.addProcessArray);
                 outer.hide();
                 outer.root.processRunnerControl.start();
                 outer.root.display.show();
@@ -178,19 +181,5 @@ class Menu {
             </div>
         `);
         this.$inputForm.append(newInputGroup);
-    }
-
-    showSelectByInput() {
-        this.$selectByInput.show();
-        this.$addInfoButton.show();
-        this.$selectByRandomButton.show();
-        this.$inputForm.show();
-    }
-
-    hideSelectByInput() {
-        this.$selectByInput.hide();
-        this.$selectByRandomButton.hide();
-        this.$addInfoButton.hide();
-        this.$inputForm.hide();
     }
 }

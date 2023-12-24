@@ -1,7 +1,10 @@
 class ProcessCompleteGroup extends AnimationObjectBase {
-    constructor(display,pos,width,height) {
+    constructor(display,root,pos,width,height) {
         super();
         this.display = display;
+        this.root = root;
+        this.selectMode = this.root.selectMode;
+        this.processRunnerControl = this.display.processRunnerControl;
         this.ctx = this.display.ctx;
         this.pos = pos;
         this.width = width;
@@ -11,10 +14,8 @@ class ProcessCompleteGroup extends AnimationObjectBase {
         this.PBwidth = this.width / 4;
         this.PBheight = this.height;
         this.PBShowCount = 3;
-        this.processInfoArray = this.display.processInfoArray;
+        this.processInfoArray = this.processRunnerControl.getCompleteProcessInfo(this.selectMode);
         this.processBlockArray = [];
-        
-        this.start();
     }
 
     start() {
@@ -30,9 +31,14 @@ class ProcessCompleteGroup extends AnimationObjectBase {
     }
 
     update() {
+        this.updateProcessInfo();
         this.updateProcessBlockInfo();
         this.updateOverflowProcessGroupShow();
         this.render();
+    }
+
+    updateProcessInfo() {
+        this.processInfoArray = this.processRunnerControl.getCompleteProcessInfo(this.selectMode);
     }
 
     updateProcessBlockInfo() {

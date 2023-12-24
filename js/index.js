@@ -161,8 +161,6 @@ class DisplayBackground extends AnimationObjectBase {
         this.mode = mode;
 
         this.isShow = false;
-
-        this.start();
     }
 
     start() {
@@ -240,9 +238,12 @@ class DisplayBackground extends AnimationObjectBase {
         this.ctx.fillText(this.processInfo['processName'],this.processNamePos[0],this.processNamePos[1]);
     }
 }class ProcessCompleteGroup extends AnimationObjectBase {
-    constructor(display,pos,width,height) {
+    constructor(display,root,pos,width,height) {
         super();
         this.display = display;
+        this.root = root;
+        this.selectMode = this.root.selectMode;
+        this.processRunnerControl = this.display.processRunnerControl;
         this.ctx = this.display.ctx;
         this.pos = pos;
         this.width = width;
@@ -252,10 +253,8 @@ class DisplayBackground extends AnimationObjectBase {
         this.PBwidth = this.width / 4;
         this.PBheight = this.height;
         this.PBShowCount = 3;
-        this.processInfoArray = this.display.processInfoArray;
+        this.processInfoArray = this.processRunnerControl.getCompleteProcessInfo(this.selectMode);
         this.processBlockArray = [];
-        
-        this.start();
     }
 
     start() {
@@ -271,9 +270,14 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     update() {
+        this.updateProcessInfo();
         this.updateProcessBlockInfo();
         this.updateOverflowProcessGroupShow();
         this.render();
+    }
+
+    updateProcessInfo() {
+        this.processInfoArray = this.processRunnerControl.getCompleteProcessInfo(this.selectMode);
     }
 
     updateProcessBlockInfo() {
@@ -295,6 +299,7 @@ class DisplayBackground extends AnimationObjectBase {
     constructor(display,pos,selectMode) {
         super();
         this.display = display;
+        this.processRunnerControl = this.display.processRunnerControl;
         this.ctx = this.display.ctx;
         this.scale = this.display.scale;
         this.power = 0.18;
@@ -307,14 +312,12 @@ class DisplayBackground extends AnimationObjectBase {
         this.PBwidth = this.width;
         this.PBheight = this.height / 7;
         this.PBShowCount = 5;
-        this.processInfoArray = this.display.processInfoArray;
+        this.processInfoArray = this.processRunnerControl.getHandleProcessInfo(this.selectMode);
         this.processBlockArray = [];
-
-        this.start();
     }
 
     start() {
-        this.completeProcessGroup = new ProcessCompleteGroup(this.display,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale);
+        this.completeProcessGroup = new ProcessCompleteGroup(this.display,this,[this.pos[0] - this.width / 2,this.pos[1] + 0.15 * this.scale],this.width,0.13 * this.scale);
 
         let PBpos = [this.pos[0] - this.width / 2,this.pos[1] - this.PBheight / 2];
         for(let i = 0;i < this.PBShowCount;i ++ ) {
@@ -326,9 +329,14 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     update() {
+        this.updateProcessInfo();
         this.updateProcessBlockInfo();
-        this.updateOverflowProcessGroupShow();
+        this.updateOverflowProcessGroupShow(this.selectMode);
         this.render();
+    }
+
+    updateProcessInfo() {
+        this.processInfoArray = this.processRunnerControl.getHandleProcessInfo(this.selectMode);
     }
 
     updateProcessBlockInfo() {
@@ -385,10 +393,9 @@ class DisplayBackground extends AnimationObjectBase {
         this.PBWidth = this.width / 6;
         this.PBheight = this.height;
         this.PBShowCount = 5;
-        this.processInfoArray = this.display.processInfoArray;
-        this.processBlockArray = [];
+        this.processInfoArray = this.processRunnerControl.getWaitProcessInfo();
 
-        this.start();
+        this.processBlockArray = [];
     }
 
     start() {
@@ -408,6 +415,7 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     update() {
+        this.updateProcessInfo();
         this.updateProcessBlockInfo();
         this.updateOverflowProcessGroupShow();
         this.render();
@@ -441,8 +449,6 @@ class DisplayBackground extends AnimationObjectBase {
         this.scale = this.height;
 
         this.hide();
-
-        this.start();
     }
 
     start() {
@@ -486,7 +492,7 @@ class Menu {
                     <div class='input-and-random'>
                         <div class="input-form col-md-4 mx-auto"></div>
                         <div class="select-by-input d-grid gap-2.5 col-6 mx-auto">
-                            <button class="add-info-button btn btn-success" type="button" style="margin:1%">+add</button>
+                            <button class="add-info-button btn btn-success" type="button">+add</button>
                             <button class="select-by-input-button btn btn-primary" type="button">自己输入</button>
                         </div>
                         <div class="select-by-random d-grid gap-2.5 col-6 mx-auto">
@@ -548,21 +554,23 @@ class Menu {
         let outer = this;
 
         this.$selectByInputButton.click(() => {
-            outer.showSelectByInput();
+            outer.$inputForm.show();
+            outer.$addInfoButton.show();
 
             outer.isRandom = false;
 
-            outer.$selectByRandom.hide();
-            outer.$selectByInputButton.hide();
+            outer.$selectByRandomButton.css('background-color',"rgb(54,108,251)");
+            outer.$selectByInputButton.css('background-color',"rgb(44,92,213)");
         });
 
         this.$selectByRandomButton.click(() => {
-            outer.hideSelectByInput();
+            outer.$inputForm.hide();
+            outer.$addInfoButton.hide();
 
             outer.isRandom = true;
             
-            outer.$selectByRandom.show();
-            outer.$selectByInputButton.show();
+            outer.$selectByInputButton.css('background-color',"rgb(54,108,251)");
+            outer.$selectByRandomButton.css('background-color',"rgb(44,92,213)");
         });
 
         this.$addInfoButton.click(() => {
@@ -584,9 +592,9 @@ class Menu {
                     }).get();
                     processInfoArray.push({
                         'processName': inputValues[0],
-                        'arrivalTime': inputValues[1],
-                        'priority': inputValues[2],
-                        'burstTime': inputValues[3],
+                        'arrivalTime': parseFloat(inputValues[1]),
+                        'priority': parseFloat(inputValues[2]),
+                        'burstTime': parseFloat(inputValues[3]),
                     });
                 });
             } else {
@@ -596,9 +604,9 @@ class Menu {
                 for (var i = 1; i <= processCount; i++) {
                     processInfoArray.push({
                         'processName': "P" + dividedId,
-                        'arrivalTime': this.generateRandomDouble(1,10),
-                        'priority': this.generateRandomDouble(1,10),
-                        'burstTime': this.generateRandomDouble(1,10),
+                        'arrivalTime': this.generateRandomDouble(1,20),
+                        'priority': this.generateRandomDouble(1,20),
+                        'burstTime': this.generateRandomDouble(1,20),
                     });
                     dividedId ++;
                 }
@@ -610,6 +618,7 @@ class Menu {
             if(outer.selectMode.length < 1) {
                 alert("请至少选择一种模式");
             } else {
+                console.log(outer.addProcessArray);
                 outer.hide();
                 outer.root.processRunnerControl.start();
                 outer.root.display.show();
@@ -658,20 +667,6 @@ class Menu {
         `);
         this.$inputForm.append(newInputGroup);
     }
-
-    showSelectByInput() {
-        this.$selectByInput.show();
-        this.$addInfoButton.show();
-        this.$selectByRandomButton.show();
-        this.$inputForm.show();
-    }
-
-    hideSelectByInput() {
-        this.$selectByInput.hide();
-        this.$selectByRandomButton.hide();
-        this.$addInfoButton.hide();
-        this.$inputForm.hide();
-    }
 }
 class ProcessRunner extends AnimationObjectBase {
     constructor(root,mode) {
@@ -681,37 +676,37 @@ class ProcessRunner extends AnimationObjectBase {
         this.ModuleFactory = this.root.ModuleFactory;
         this.addProcessArray = this.root.addProcessArray;
 
-        this.instance = new this.ModuleFactory();
+        this.instancePromise = new this.ModuleFactory();
+
+        
+        this.waitProcessInfoArray = [];
+        this.handleProcessInfoArray = [];
+        this.completeProcessInfoArray = [];
 
         this.isReady = false;
-
-        this.start();
     }
 
     start() {
-        this.instance.onRuntimeInitialized = () => {
+        this.instancePromise.then((module) => {
+            this.instance = module;
             this.startInstance();
-
-            this.waitProcessInfoArray = this.getWaitProcessInfo();
-            this.handleProcessInfoArray = this.getHandleProcessInfo();
-            this.completeProcessInfoArray = this.getCompleteProcessInfo();
-
-            this.isReady = true;
-        };
+        });
     }
 
     startInstance() {
-        this.instance.selectMode(this.mode);
-        
         const processes = this.addProcessArray;
         for(let i = 0;i < processes.length;i ++ ) {
             this.instance.addWaitProcess(processes[i]['processName'],processes[i]['arrivalTime'],processes[i]['priority'],processes[i]['burstTime']);
         }
+
+        this.instance.selectMode(this.mode);
+
+        this.isReady = true;
     } 
 
     update() {
         if(this.isReady) {
-            this.instance.runProcess(this.timedelta);
+            this.instance.runProcess(this.timedelta / 1000);
 
             this.updateProcessInfo();
         }

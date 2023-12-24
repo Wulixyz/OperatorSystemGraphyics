@@ -40,6 +40,11 @@ body {
     /* background-color: lightgray; */
 }
 
+.add-info-button {
+    margin-top: 2%;
+    margin-bottom: 3%;
+}
+
 .select-by-random {
     margin: 2%;
 }

@@ -13,10 +13,9 @@ class ProcessWaitGroup extends AnimationObjectBase {
         this.PBWidth = this.width / 6;
         this.PBheight = this.height;
         this.PBShowCount = 5;
-        this.processInfoArray = this.display.processInfoArray;
-        this.processBlockArray = [];
+        this.processInfoArray = this.processRunnerControl.getWaitProcessInfo();
 
-        this.start();
+        this.processBlockArray = [];
     }
 
     start() {
@@ -36,6 +35,7 @@ class ProcessWaitGroup extends AnimationObjectBase {
     }
 
     update() {
+        this.updateProcessInfo();
         this.updateProcessBlockInfo();
         this.updateOverflowProcessGroupShow();
         this.render();

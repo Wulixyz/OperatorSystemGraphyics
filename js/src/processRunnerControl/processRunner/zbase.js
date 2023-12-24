@@ -6,37 +6,37 @@ class ProcessRunner extends AnimationObjectBase {
         this.ModuleFactory = this.root.ModuleFactory;
         this.addProcessArray = this.root.addProcessArray;
 
-        this.instance = new this.ModuleFactory();
+        this.instancePromise = new this.ModuleFactory();
+
+        
+        this.waitProcessInfoArray = [];
+        this.handleProcessInfoArray = [];
+        this.completeProcessInfoArray = [];
 
         this.isReady = false;
-
-        this.start();
     }
 
     start() {
-        this.instance.then((module) => {
+        this.instancePromise.then((module) => {
+            this.instance = module;
             this.startInstance();
-
-            this.waitProcessInfoArray = this.getWaitProcessInfo();
-            this.handleProcessInfoArray = this.getHandleProcessInfo();
-            this.completeProcessInfoArray = this.getCompleteProcessInfo();
-
-            this.isReady = true;
         });
     }
 
     startInstance() {
-        this.instance.selectMode(this.mode);
-        
         const processes = this.addProcessArray;
         for(let i = 0;i < processes.length;i ++ ) {
             this.instance.addWaitProcess(processes[i]['processName'],processes[i]['arrivalTime'],processes[i]['priority'],processes[i]['burstTime']);
         }
+
+        this.instance.selectMode(this.mode);
+
+        this.isReady = true;
     } 
 
     update() {
         if(this.isReady) {
-            this.instance.runProcess(this.timedelta);
+            this.instance.runProcess(this.timedelta / 1000);
 
             this.updateProcessInfo();
         }

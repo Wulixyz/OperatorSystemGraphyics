@@ -11,8 +11,6 @@ class Display extends AnimationObjectBase {
         this.scale = this.height;
 
         this.hide();
-
-        this.start();
     }
 
     start() {
