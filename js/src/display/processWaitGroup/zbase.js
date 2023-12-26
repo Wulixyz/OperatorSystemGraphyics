@@ -28,6 +28,8 @@ class ProcessWaitGroup extends AnimationObjectBase {
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,PBpos,this.PBWidth,this.PBheight,'line');
+
+        this.waitProgressBar = new WaitProgressBar(this,[this.pos[0],this.pos[1] + this.scale * 0.1],this.width,this.height);
     }
 
     render() {

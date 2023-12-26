@@ -121,7 +121,7 @@ class Menu {
                         'processName': "P" + dividedId,
                         'arrivalTime': this.generateRandomDouble(1,20),
                         'priority': this.generateRandomDouble(1,20),
-                        'burstTime': this.generateRandomDouble(1,20),
+                        'burstTime': this.generateRandomDouble(2,5),
                     });
                     dividedId ++;
                 }

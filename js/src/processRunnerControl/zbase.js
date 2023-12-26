@@ -17,6 +17,14 @@ class ProcessRunnerControl {
         this.processStopper = new ProcessStopper(this);
     }
 
+    getCurrentTime() {
+        return this.processRunners[this.selectMode[0]].currentTime;
+    }
+
+    getHandleTime(mode) {
+        return this.processRunners[mode].handleTime;
+    }
+
     getWaitProcessInfo() {
         return this.processRunners[this.selectMode[0]].waitProcessInfoArray;
     }

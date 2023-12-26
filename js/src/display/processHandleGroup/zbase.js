@@ -29,6 +29,8 @@ class ProcessHandleGroup extends AnimationObjectBase {
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,[this.pos[0],PBpos[1] + 0.04 * this.scale],this.PBwidth,this.PBheight,'vertical');
+
+        this.handleProgressBar = new HandleProgressBar(this,[this.pos[0] + 0.21 * this.scale,this.pos[1]],0.01 * this.scale,this.height,this.selectMode);
     }
 
     update() {

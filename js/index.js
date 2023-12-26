@@ -100,6 +100,60 @@ class DisplayBackground extends AnimationObjectBase {
         this.ctx.fillStyle = "rgba(138,210,223,1)";
         this.ctx.fillRect(0,0,this.ctx.canvas.width,this.ctx.canvas.height);
     }
+}class HandleProgressBar extends AnimationObjectBase {
+    constructor(root,pos,width,height,mode) {
+        super();
+        this.root = root;
+        this.processRunnerControl = this.root.processRunnerControl;
+        this.ctx = this.root.ctx;
+        this.scale = this.root.scale;
+        this.pos = pos;
+        this.width = this.scale * 0.01;
+        this.height = height;
+        this.mode = mode;
+
+        this.currentTime = 0;
+        this.handleTime = 0;
+        this.burstTime = 0;
+        this.hasRun = false;
+    }
+
+    renderBarBase() {
+        this.ctx.fillStyle = "rgba(0,0,0,0.3)";
+        this.ctx.fillRect(this.pos[0] - this.width / 2,this.pos[1] - this.height,this.width,this.height);
+    }
+
+    renderProcess() {
+        this.ctx.save();
+        this.ctx.translate(this.pos[0] + this.width / 2,this.pos[1]);
+        this.ctx.rotate(Math.PI);
+        this.ctx.fillStyle = "rgba(148,71,80,1)";
+        this.ctx.fillRect(0,0,this.width,this.height * (this.handleTime / this.burstTime));
+        this.ctx.restore();
+    }
+
+    update() {
+        this.renderBarBase();
+        if(this.burstTime >= 0) {
+            this.renderProcess();
+            this.updateHandleTime();
+        }
+        this.updateburstTime();
+    }
+
+    updateHandleTime() {
+        this.handleTime = this.processRunnerControl.getHandleTime(this.mode);
+    }
+
+    updateburstTime() {
+        const handleProcessInfoArray = this.processRunnerControl.getHandleProcessInfo(this.mode);
+        if(handleProcessInfoArray.length > 0) {
+            this.burstTime = handleProcessInfoArray[0]['burstTime'];
+            this.hasRun = true;
+        } else {
+            if(this.hasRun) this.burstTime = -1;
+        }
+    }
 }class LineProcessGroup extends AnimationObjectBase {
     constructor(root,pos,width,height,mode) {
         super();
@@ -334,6 +388,8 @@ class DisplayBackground extends AnimationObjectBase {
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,[this.pos[0],PBpos[1] + 0.04 * this.scale],this.PBwidth,this.PBheight,'vertical');
+
+        this.handleProgressBar = new HandleProgressBar(this,[this.pos[0] + 0.21 * this.scale,this.pos[1]],0.01 * this.scale,this.height,this.selectMode);
     }
 
     update() {
@@ -424,6 +480,8 @@ class DisplayBackground extends AnimationObjectBase {
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,PBpos,this.PBWidth,this.PBheight,'line');
+
+        this.waitProgressBar = new WaitProgressBar(this,[this.pos[0],this.pos[1] + this.scale * 0.1],this.width,this.height);
     }
 
     render() {
@@ -460,7 +518,75 @@ class DisplayBackground extends AnimationObjectBase {
         }
         this.overflowProcessGroup.destroy();
     }
- }class Display{
+ }class WaitProgressBar extends AnimationObjectBase {
+    constructor(root,pos,width,height) {
+        super();
+        this.root = root;
+        this.processRunnerControl = this.root.processRunnerControl;
+        this.ctx = this.root.ctx;
+        this.scale = this.root.scale;
+        this.pos = pos;
+        this.width = width;
+        this.height = this.scale * 0.01;
+        this.currentTime = 0;
+        this.lastWaittingTime = 0;
+        this.currentWaittingTime = 0;
+        this.hasRun = false;
+    }
+
+    start() {
+
+    }
+
+    render() {
+        this.renderBarBase();
+        this.renderProgress();
+    }
+
+    renderBarBase() {
+        this.ctx.fillStyle = "rgba(0,0,0,0.3)";
+        this.ctx.fillRect(this.pos[0],this.pos[1] - this.height / 2,this.width,this.height);
+    }
+    
+    renderProgress() {
+        this.ctx.fillStyle = "rgba(148,71,80,1)";
+        this.ctx.fillRect(this.pos[0],this.pos[1] - this.height / 2,this.width * ((this.currentTime - this.lastWaittingTime) / (this.currentWaittingTime - this.lastWaittingTime)),this.height);
+    }
+
+    update() {
+        this.renderBarBase();
+        if(this.currentWaittingTime >= 0) {
+            this.renderProgress();
+            this.updateCurrentTime();
+            this.updateLastWaittingTIme();
+        }
+        this.updateCurrentWaittingTime();
+    }
+
+    updateCurrentTime() {
+        this.currentTime = this.processRunnerControl.getCurrentTime(); 
+    }
+
+    updateCurrentWaittingTime() {
+        const waitProcessInfoArray = this.processRunnerControl.getWaitProcessInfo();
+        if(waitProcessInfoArray.length > 0) {
+            this.currentWaittingTime = waitProcessInfoArray[0]['arrivalTime'];
+            this.hasRun = true;
+        } else {
+            if(this.hasRun) this.currentWaittingTime = -1;
+        }
+    }
+
+    updateLastWaittingTIme() {
+        if(this.currentTime >= this.currentWaittingTime) {
+            this.lastWaittingTime = this.currentWaittingTime;
+        }
+    }
+
+    on_destroy() {
+
+    }
+}class Display{
     constructor(root) {
         this.root = root;
         this.processRunnerControl = this.root.processRunnerControl;
@@ -637,7 +763,7 @@ class Menu {
                         'processName': "P" + dividedId,
                         'arrivalTime': this.generateRandomDouble(1,20),
                         'priority': this.generateRandomDouble(1,20),
-                        'burstTime': this.generateRandomDouble(1,20),
+                        'burstTime': this.generateRandomDouble(2,5),
                     });
                     dividedId ++;
                 }
@@ -708,7 +834,6 @@ class ProcessRunner extends AnimationObjectBase {
         this.addProcessArray = this.root.addProcessArray;
 
         this.instancePromise = new this.ModuleFactory();
-
         
         this.waitProcessInfoArray = [];
         this.handleProcessInfoArray = [];
@@ -717,6 +842,9 @@ class ProcessRunner extends AnimationObjectBase {
         this.isReady = false;
 
         this.isCompleted = false;
+
+        this.currentTime = 0;
+        this.handleTime = 0;
     }
 
     start() {
@@ -743,6 +871,8 @@ class ProcessRunner extends AnimationObjectBase {
 
             this.updateProcessInfo();
             this.updateCompleted();
+            this.updateCurrentTime();
+            this.updateHandleTime();
         }
     }
 
@@ -754,6 +884,14 @@ class ProcessRunner extends AnimationObjectBase {
 
     updateCompleted() {
         if(this.waitProcessInfoArray < 1 && this.handleProcessInfoArray.length < 1) this.isCompleted = true;
+    }
+
+    updateCurrentTime() {
+        this.currentTime = this.instance.getCurrentTime();
+    }
+
+    updateHandleTime() {
+        this.handleTime = this.instance.getHandleTime();
     }
 
     getWaitProcessInfo() {
@@ -867,6 +1005,14 @@ class ProcessRunner extends AnimationObjectBase {
         }
 
         this.processStopper = new ProcessStopper(this);
+    }
+
+    getCurrentTime() {
+        return this.processRunners[this.selectMode[0]].currentTime;
+    }
+
+    getHandleTime(mode) {
+        return this.processRunners[mode].handleTime;
     }
 
     getWaitProcessInfo() {

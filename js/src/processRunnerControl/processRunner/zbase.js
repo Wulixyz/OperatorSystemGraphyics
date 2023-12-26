@@ -7,7 +7,6 @@ class ProcessRunner extends AnimationObjectBase {
         this.addProcessArray = this.root.addProcessArray;
 
         this.instancePromise = new this.ModuleFactory();
-
         
         this.waitProcessInfoArray = [];
         this.handleProcessInfoArray = [];
@@ -16,6 +15,9 @@ class ProcessRunner extends AnimationObjectBase {
         this.isReady = false;
 
         this.isCompleted = false;
+
+        this.currentTime = 0;
+        this.handleTime = 0;
     }
 
     start() {
@@ -42,6 +44,8 @@ class ProcessRunner extends AnimationObjectBase {
 
             this.updateProcessInfo();
             this.updateCompleted();
+            this.updateCurrentTime();
+            this.updateHandleTime();
         }
     }
 
@@ -53,6 +57,14 @@ class ProcessRunner extends AnimationObjectBase {
 
     updateCompleted() {
         if(this.waitProcessInfoArray < 1 && this.handleProcessInfoArray.length < 1) this.isCompleted = true;
+    }
+
+    updateCurrentTime() {
+        this.currentTime = this.instance.getCurrentTime();
+    }
+
+    updateHandleTime() {
+        this.handleTime = this.instance.getHandleTime();
     }
 
     getWaitProcessInfo() {
