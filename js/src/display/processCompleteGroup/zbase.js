@@ -24,7 +24,7 @@ class ProcessCompleteGroup extends AnimationObjectBase {
         let PBpos = this.pos;
         for(let i = 0;i < this.PBShowCount;i ++ ) {
             this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBwidth,this.PBheight));
-            PBpos = [PBpos[0] + this.PBwidth + 0.01 * this.scale,PBpos[1]];
+            PBpos = [PBpos[0] + this.PBwidth,PBpos[1]];
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,PBpos,this.PBWidth,this.PBheight,'line');

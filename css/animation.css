@@ -20,6 +20,29 @@ body {
     align-items: center;
     justify-content: center;
     height: 80%;
+}   
+
+.menu-button {
+    height: 45px;
+    font-size: large;
+}
+
+.menu-button:hover {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+    filter: brightness(0.9);
+}
+
+.menu-button:disabled {
+    /* 添加禁用状态下的样式 */
+    filter: brightness(1); /* 恢复正常亮度，或根据需要进行调整 */
+    transform: scale(1); /* 恢复正常大小 */
+    cursor: not-allowed; /* 更改鼠标指针样式为“禁用” */
+    /* 还可以添加其他样式，以符合你的设计需求 */
+}
+
+.mode-select {
+    font-size: large;
 }
 
 .input-and-random,

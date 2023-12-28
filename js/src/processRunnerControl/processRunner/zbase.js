@@ -30,7 +30,7 @@ class ProcessRunner extends AnimationObjectBase {
     startInstance() {
         const processes = this.addProcessArray;
         for(let i = 0;i < processes.length;i ++ ) {
-            this.instance.addWaitProcess(processes[i]['processName'],processes[i]['arrivalTime'],processes[i]['priority'],processes[i]['burstTime']);
+            this.instance.addWaitProcess(processes[i]['processName'],processes[i]['arrivalTime'],processes[i]['priority'],processes[i]['burstTime'],processes[i]['blockColor']);
         }
 
         this.instance.selectMode(this.mode);
@@ -76,6 +76,7 @@ class ProcessRunner extends AnimationObjectBase {
                 'arrivalTime': processInfo[i].arrivalTime,
                 'priority': processInfo[i].priority,
                 'burstTime': processInfo[i].burstTime,
+                'blockColor': processInfo[i].blockColor,
             });
         }
         return processInfoArray;
@@ -90,6 +91,7 @@ class ProcessRunner extends AnimationObjectBase {
                 'arrivalTime': processInfo[i].arrivalTime,
                 'priority': processInfo[i].priority,
                 'burstTime': processInfo[i].burstTime,
+                'blockColor': processInfo[i].blockColor,
             });
         }
         return processInfoArray;
@@ -105,6 +107,7 @@ class ProcessRunner extends AnimationObjectBase {
                 'priority': processInfo[i].priority,
                 'burstTime': processInfo[i].burstTime,
                 'completeTime': processInfo[i].completeTime,
+                'blockColor': processInfo[i].blockColor,
             });
         }
         return processInfoArray;

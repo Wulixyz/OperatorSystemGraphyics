@@ -14,8 +14,11 @@ class ProcessWaitGroup extends AnimationObjectBase {
         this.PBheight = this.height;
         this.PBShowCount = 5;
         this.processInfoArray = this.processRunnerControl.getWaitProcessInfo();
+        this.lastWaittingProcess = null;
 
         this.processBlockArray = [];
+
+        this.selectMode = this.display.selectMode;
     }
 
     start() {
@@ -24,7 +27,7 @@ class ProcessWaitGroup extends AnimationObjectBase {
         let PBpos = this.pos;
         for(let i = 0;i < this.PBShowCount;i ++ ) {
             this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBWidth,this.PBheight));
-            PBpos = [PBpos[0] + this.PBWidth + 0.02 * this.scale,PBpos[1]];
+            PBpos = [PBpos[0] + this.PBWidth,PBpos[1]];
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,PBpos,this.PBWidth,this.PBheight,'line');
@@ -40,11 +43,25 @@ class ProcessWaitGroup extends AnimationObjectBase {
         this.updateProcessInfo();
         this.updateProcessBlockInfo();
         this.updateOverflowProcessGroupShow();
+        this.updateProcessOut();
         this.render();
     }
 
     updateProcessInfo() {
         this.processInfoArray = this.processRunnerControl.getWaitProcessInfo();
+    }
+
+    updateProcessOut() {
+        if(this.lastWaittingProcess == null) {
+            this.lastWaittingProcess = this.processInfoArray[0];
+        } else if(this.processInfoArray[0] == null || this.lastWaittingProcess['processName'] != this.processInfoArray[0]['processName']) {
+            if(this.lastWaittingProcess != null) {
+                for(let i = 0;i < this.selectMode.length;i ++ ) {
+                    new MoveProcessBlock(this,this.pos,[this.display.width / (this.selectMode.length + 1) * (i + 1),this.display.height * 0.25],this.PBWidth,this.PBheight,this.lastWaittingProcess);
+                }
+            }
+            this.lastWaittingProcess = this.processInfoArray[0];
+        }
     }
 
     updateProcessBlockInfo() {
@@ -65,5 +82,6 @@ class ProcessWaitGroup extends AnimationObjectBase {
             this.processBlockArray[i].destroy();
         }
         this.overflowProcessGroup.destroy();
+        this.waitProgressBar.destroy();
     }
  }

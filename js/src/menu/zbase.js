@@ -7,11 +7,11 @@ class Menu {
                     <div class='input-and-random'>
                         <div class="input-form col-md-4 mx-auto"></div>
                         <div class="select-by-input d-grid gap-2.5 col-6 mx-auto">
-                            <button class="add-info-button btn btn-success" type="button">+add</button>
-                            <button class="select-by-input-button btn btn-primary" type="button">自己输入</button>
+                            <button class="menu-button add-info-button btn btn-success" type="button">+add</button>
+                            <button class="menu-button select-by-input-button btn btn-primary" type="button">自己输入</button>
                         </div>
                         <div class="select-by-random d-grid gap-2.5 col-6 mx-auto">
-                            <button class="select-by-random-button btn btn-primary" type="button">随机生成</button>
+                            <button class="menu-button select-by-random-button btn btn-primary" type="button">随机生成</button>
                         </div>
                     </div>
                     <div class='mode-select select-check'>
@@ -30,7 +30,7 @@ class Menu {
                     </div>
                     <div class='submit-button-field'>
                         <div class="d-grid gap-2.5 col-6 mx-auto">
-                            <button class="submit-button btn btn-primary" type="button">提交</button>
+                            <button class="menu-button submit-button btn btn-primary" type="button">提交</button>
                         </div>
                     </div>
                 </div>
@@ -57,6 +57,8 @@ class Menu {
         this.isRandom = true;
         this.seed = Math.floor(Math.random() * 10000);  // 生成随机种子
         this.generator = new Math.seedrandom(this.seed);  // 随机数生成器
+
+        this.colors = ["#00A86B","#FF4500","#317873"," #8A2BE2","#00416A"];
         
         this.start();
     }
@@ -69,23 +71,21 @@ class Menu {
         let outer = this;
 
         this.$selectByInputButton.click(() => {
+            outer.$selectByInputButton.prop('disabled', true);
+            outer.$selectByRandomButton.prop('disabled',false);
             outer.$inputForm.show();
             outer.$addInfoButton.show();
-
+    
             outer.isRandom = false;
-
-            outer.$selectByRandomButton.css('background-color',"rgb(54,108,251)");
-            outer.$selectByInputButton.css('background-color',"rgb(44,92,213)");
         });
 
         this.$selectByRandomButton.click(() => {
+            outer.$selectByInputButton.prop('disabled', false);
+            outer.$selectByRandomButton.prop('disabled',true);
             outer.$inputForm.hide();
             outer.$addInfoButton.hide();
 
             outer.isRandom = true;
-            
-            outer.$selectByInputButton.css('background-color',"rgb(54,108,251)");
-            outer.$selectByRandomButton.css('background-color',"rgb(44,92,213)");
         });
 
         this.$addInfoButton.click(() => {
@@ -119,12 +119,16 @@ class Menu {
                 for (var i = 1; i <= processCount; i++) {
                     processInfoArray.push({
                         'processName': "P" + dividedId,
-                        'arrivalTime': this.generateRandomDouble(1,20),
+                        'arrivalTime': this.generateRandomDouble(2,5),
                         'priority': this.generateRandomDouble(1,20),
                         'burstTime': this.generateRandomDouble(2,5),
                     });
                     dividedId ++;
                 }
+            }
+
+            for(let i = 0;i < processInfoArray.length;i ++ ) {
+                processInfoArray[i]['blockColor'] = this.colors[this.generateRandomInt(0,this.colors.length - 1)];
             }
 
             outer.getSelectMode();

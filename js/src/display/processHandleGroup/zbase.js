@@ -14,9 +14,11 @@ class ProcessHandleGroup extends AnimationObjectBase {
 
         this.PBwidth = this.width;
         this.PBheight = this.height / 7;
-        this.PBShowCount = 5;
+        this.PBShowCount = 6;
         this.processInfoArray = this.processRunnerControl.getHandleProcessInfo(this.selectMode);
         this.processBlockArray = [];
+
+        this.arcRadius = 20;
     }
 
     start() {
@@ -25,7 +27,7 @@ class ProcessHandleGroup extends AnimationObjectBase {
         let PBpos = [this.pos[0] - this.width / 2,this.pos[1] - this.PBheight / 2];
         for(let i = 0;i < this.PBShowCount;i ++ ) {
             this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBwidth,this.PBheight));
-            PBpos = [PBpos[0],PBpos[1] - this.PBheight - 0.02 * this.scale];
+            PBpos = [PBpos[0],PBpos[1] - this.PBheight];
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,[this.pos[0],PBpos[1] + 0.04 * this.scale],this.PBwidth,this.PBheight,'vertical');
@@ -60,21 +62,30 @@ class ProcessHandleGroup extends AnimationObjectBase {
         this.renderBottomLine();
         this.renderTwoSidesLine();
         this.renderBottomMessage();
+        this.renderArc();
     }
 
     renderBottomLine() {
-        this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1]);
-    }
-
-    renderBottomMessage() {
-        this.ctx.font = "30px Arial";
-        this.ctx.fillStyle = "black";
-        this.ctx.fillText(this.selectMode,this.pos[0] - 0.04 * this.scale,this.pos[1] + 0.05 * this.scale);
+        this.drawLine(this.pos[0] - this.power * this.scale + this.arcRadius,this.pos[1],this.pos[0] + this.power * this.scale - this.arcRadius,this.pos[1]);
     }
     
     renderTwoSidesLine() {
-        this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1],this.pos[0] - this.power * this.scale,this.pos[1] - 0.5 * this.scale);
-        this.drawLine(this.pos[0] + this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1] - 0.5 * this.scale);
+        this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1] - this.arcRadius,this.pos[0] - this.power * this.scale,this.pos[1] - this.height);
+        this.drawLine(this.pos[0] + this.power * this.scale,this.pos[1] - this.arcRadius,this.pos[0] + this.power * this.scale,this.pos[1] - this.height);
+    }
+
+    renderArc() {
+        this.ctx.beginPath();
+
+        // 绘制左侧圆弧
+        this.ctx.moveTo(this.pos[0] - this.power * this.scale + this.arcRadius, this.pos[1]);
+        this.ctx.arcTo(this.pos[0] - this.power * this.scale, this.pos[1], this.pos[0] - this.power * this.scale, this.pos[1] - this.arcRadius, this.arcRadius);
+
+        // 绘制右侧圆弧
+        this.ctx.moveTo(this.pos[0] + this.power * this.scale - this.arcRadius, this.pos[1]);
+        this.ctx.arcTo(this.pos[0] + this.power * this.scale, this.pos[1], this.pos[0] + this.power * this.scale, this.pos[1] - this.arcRadius, this.arcRadius);
+
+        this.ctx.stroke();
     }
 
     drawLine(x1,y1,x2,y2) {
@@ -84,11 +95,18 @@ class ProcessHandleGroup extends AnimationObjectBase {
         this.ctx.stroke();
     }
 
+    renderBottomMessage() {
+        this.ctx.font = "30px Arial";
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText(this.selectMode,this.pos[0] - 0.04 * this.scale,this.pos[1] + 0.05 * this.scale);
+    }
+
     on_destroy() {
         this.completeProcessGroup.destroy();
         for(let i = 0;i < this.processBlockArray.length;i ++ ) {
             this.processBlockArray[i].destroy();
         }
         this.overflowProcessGroup.destroy();
+        this.handleProgressBar.destroy();
     }
 }

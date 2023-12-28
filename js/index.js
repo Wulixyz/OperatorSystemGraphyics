@@ -170,6 +170,8 @@ class DisplayBackground extends AnimationObjectBase {
         this.bottomLeft = [this.pos[0],this.pos[1] + this.height / 2];
         this.topRight = [this.pos[0] + this.width,this.pos[1] - this.height / 2];
         this.bottomRight = [this.pos[0] + this.width,this.pos[1] + this.height / 2];
+
+        this.arcRadius = 20;
     }
 
     update() {
@@ -182,9 +184,15 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     renderLine() {
-        this.drawLine(this.topLeft,this.topRight);
-        this.drawLine(this.topLeft,this.bottomLeft);
-        this.drawLine(this.bottomLeft,this.bottomRight);
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.topLeft[0] + this.arcRadius, this.topLeft[1]);
+        this.ctx.lineTo(this.topRight[0], this.topRight[1]);
+        this.ctx.moveTo(this.bottomRight[0],this.bottomRight[1]);
+        this.ctx.lineTo(this.bottomLeft[0] + this.arcRadius, this.bottomLeft[1]);
+        this.ctx.arcTo(this.bottomLeft[0], this.bottomLeft[1], this.bottomLeft[0], this.bottomLeft[1] - this.arcRadius, this.arcRadius);
+        this.ctx.lineTo(this.topLeft[0], this.topLeft[1] + this.arcRadius);
+        this.ctx.arcTo(this.topLeft[0], this.topLeft[1], this.topLeft[0] + this.arcRadius, this.topLeft[1], this.arcRadius);
+        this.ctx.stroke();
     }
 
     renderMode() {
@@ -202,6 +210,72 @@ class DisplayBackground extends AnimationObjectBase {
         this.ctx.moveTo(pos1[0],pos1[1]);
         this.ctx.lineTo(pos2[0],pos2[1]);
         this.ctx.stroke();
+    }
+}class MoveProcessBlock extends AnimationObjectBase {
+    constructor(root,pos1,pos2,width,heigth,processInfo) {
+        super();
+        this.root = root;
+        this.ctx = this.root.ctx;
+        this.scale = this.root.scale;
+        this.pos1 = pos1;
+        this.pos2 = pos2;
+        this.width = width;
+        this.heigth = heigth;
+        this.processInfo = processInfo;
+        this.cornerRadius = 20;
+
+        this.hasRunTime = 0;  // 单位ms
+        this.animationTime = 400;  // 单位ms
+
+        this.xdist = this.pos2[0] - this.pos1[0];
+        this.ydist = this.pos2[1] - this.pos1[1];
+        this.dist = Math.sqrt(Math.pow(this.xdist,2) + Math.pow(this.ydist,2));
+
+        this.angle = Math.atan2(this.ydist,this.xdist);
+
+        this.speed = this.dist / this.animationTime;
+    }
+
+    start() {
+
+    }
+
+    update() {
+        const runDist = this.speed * this.hasRunTime;
+        const pos = [this.pos1[0] + runDist * Math.cos(this.angle),this.pos1[1] + runDist * Math.sin(this.angle)];
+        const processNamePos = [pos[0] - this.width / 5 * 1,pos[1]];
+        pos[0] = pos[0] - this.width / 2,pos[1] = pos[1] - this.heigth / 2;
+        
+        this.renderBlock(pos);
+        this.renderProcessName(processNamePos);
+
+        if(this.hasRunTime >= this.animationTime) this.destroy();
+        this.hasRunTime += this.timedelta;
+    }
+
+    renderBlock(pos) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(pos[0],pos[1]);
+        this.ctx.lineTo(pos[0] + this.width - this.cornerRadius,pos[1]);
+        this.ctx.arcTo(pos[0] + this.width,pos[1],pos[0] + this.width,pos[1] + this.cornerRadius,this.cornerRadius);
+        this.ctx.lineTo(pos[0] + this.width,pos[1] + this.heigth - this.cornerRadius);
+        this.ctx.arcTo(pos[0] + this.width,pos[1] + this.heigth,pos[0] + this.width - this.cornerRadius,pos[1] + this.heigth,this.cornerRadius);
+        this.ctx.lineTo(pos[0] + this.cornerRadius,pos[1] + this.heigth);
+        this.ctx.arcTo(pos[0],pos[1] + this.heigth,pos[0],pos[1] + this.heigth - this.cornerRadius,this.cornerRadius);
+        this.ctx.lineTo(pos[0],pos[1] + this.cornerRadius);
+        this.ctx.arcTo(pos[0],pos[1],pos[0] + this.cornerRadius,pos[1],this.cornerRadius);
+        this.ctx.fillStyle = this.processInfo['blockColor'];
+        this.ctx.fill();
+    }
+
+    renderProcessName(pos) {
+        this.ctx.font = "20px Arial";
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText(this.processInfo['processName'],pos[0],pos[1]);
+    }
+
+    on_destroy() {
+
     }
 }class OverflowProcessGroup extends AnimationObjectBase {
     constructor(display,pos,width,height,mode) {
@@ -259,6 +333,7 @@ class DisplayBackground extends AnimationObjectBase {
         this.height = height;
         this.scale = this.root.scale;
         this.pos = pos;
+        this.cornerRadius = 20;
 
         this.pos1 = [this.pos[0],this.pos[1] - this.height / 2];
         this.processNamePos = [this.pos[0] + this.width / 5 * 2,this.pos[1]];
@@ -282,8 +357,29 @@ class DisplayBackground extends AnimationObjectBase {
     }
 
     renderBlock() {
-        this.ctx.fillStyle = "rgba(242,232,60,1)";
-        this.ctx.fillRect(this.pos1[0],this.pos1[1],this.width,this.height);
+        this.ctx.beginPath();
+        
+        // 左上角
+        this.ctx.moveTo(this.pos1[0] + this.cornerRadius, this.pos1[1]);
+        // 右上角
+        this.ctx.lineTo(this.pos1[0] + this.width - this.cornerRadius, this.pos1[1]);
+        this.ctx.arcTo(this.pos1[0] + this.width, this.pos1[1], this.pos1[0] + this.width, this.pos1[1] + this.cornerRadius, this.cornerRadius);
+
+        // 右下角
+        this.ctx.lineTo(this.pos1[0] + this.width, this.pos1[1] + this.height - this.cornerRadius);
+        this.ctx.arcTo(this.pos1[0] + this.width, this.pos1[1] + this.height, this.pos1[0] + this.width - this.cornerRadius, this.pos1[1] + this.height, this.cornerRadius);
+
+        // 左下角
+        this.ctx.lineTo(this.pos1[0] + this.cornerRadius, this.pos1[1] + this.height);
+        this.ctx.arcTo(this.pos1[0], this.pos1[1] + this.height, this.pos1[0], this.pos1[1] + this.height - this.cornerRadius, this.cornerRadius);
+
+        // 左上角
+        this.ctx.lineTo(this.pos1[0], this.pos1[1] + this.cornerRadius);
+        this.ctx.arcTo(this.pos1[0], this.pos1[1], this.pos1[0] + this.cornerRadius, this.pos1[1], this.cornerRadius);
+
+        // 填充矩形
+        this.ctx.fillStyle = this.processInfo['blockColor'];
+        this.ctx.fill();
     }
 
     renderProcessName() {
@@ -317,7 +413,7 @@ class DisplayBackground extends AnimationObjectBase {
         let PBpos = this.pos;
         for(let i = 0;i < this.PBShowCount;i ++ ) {
             this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBwidth,this.PBheight));
-            PBpos = [PBpos[0] + this.PBwidth + 0.01 * this.scale,PBpos[1]];
+            PBpos = [PBpos[0] + this.PBwidth,PBpos[1]];
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,PBpos,this.PBWidth,this.PBheight,'line');
@@ -373,9 +469,11 @@ class DisplayBackground extends AnimationObjectBase {
 
         this.PBwidth = this.width;
         this.PBheight = this.height / 7;
-        this.PBShowCount = 5;
+        this.PBShowCount = 6;
         this.processInfoArray = this.processRunnerControl.getHandleProcessInfo(this.selectMode);
         this.processBlockArray = [];
+
+        this.arcRadius = 20;
     }
 
     start() {
@@ -384,7 +482,7 @@ class DisplayBackground extends AnimationObjectBase {
         let PBpos = [this.pos[0] - this.width / 2,this.pos[1] - this.PBheight / 2];
         for(let i = 0;i < this.PBShowCount;i ++ ) {
             this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBwidth,this.PBheight));
-            PBpos = [PBpos[0],PBpos[1] - this.PBheight - 0.02 * this.scale];
+            PBpos = [PBpos[0],PBpos[1] - this.PBheight];
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,[this.pos[0],PBpos[1] + 0.04 * this.scale],this.PBwidth,this.PBheight,'vertical');
@@ -419,21 +517,30 @@ class DisplayBackground extends AnimationObjectBase {
         this.renderBottomLine();
         this.renderTwoSidesLine();
         this.renderBottomMessage();
+        this.renderArc();
     }
 
     renderBottomLine() {
-        this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1]);
-    }
-
-    renderBottomMessage() {
-        this.ctx.font = "30px Arial";
-        this.ctx.fillStyle = "black";
-        this.ctx.fillText(this.selectMode,this.pos[0] - 0.04 * this.scale,this.pos[1] + 0.05 * this.scale);
+        this.drawLine(this.pos[0] - this.power * this.scale + this.arcRadius,this.pos[1],this.pos[0] + this.power * this.scale - this.arcRadius,this.pos[1]);
     }
     
     renderTwoSidesLine() {
-        this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1],this.pos[0] - this.power * this.scale,this.pos[1] - 0.5 * this.scale);
-        this.drawLine(this.pos[0] + this.power * this.scale,this.pos[1],this.pos[0] + this.power * this.scale,this.pos[1] - 0.5 * this.scale);
+        this.drawLine(this.pos[0] - this.power * this.scale,this.pos[1] - this.arcRadius,this.pos[0] - this.power * this.scale,this.pos[1] - this.height);
+        this.drawLine(this.pos[0] + this.power * this.scale,this.pos[1] - this.arcRadius,this.pos[0] + this.power * this.scale,this.pos[1] - this.height);
+    }
+
+    renderArc() {
+        this.ctx.beginPath();
+
+        // 绘制左侧圆弧
+        this.ctx.moveTo(this.pos[0] - this.power * this.scale + this.arcRadius, this.pos[1]);
+        this.ctx.arcTo(this.pos[0] - this.power * this.scale, this.pos[1], this.pos[0] - this.power * this.scale, this.pos[1] - this.arcRadius, this.arcRadius);
+
+        // 绘制右侧圆弧
+        this.ctx.moveTo(this.pos[0] + this.power * this.scale - this.arcRadius, this.pos[1]);
+        this.ctx.arcTo(this.pos[0] + this.power * this.scale, this.pos[1], this.pos[0] + this.power * this.scale, this.pos[1] - this.arcRadius, this.arcRadius);
+
+        this.ctx.stroke();
     }
 
     drawLine(x1,y1,x2,y2) {
@@ -443,12 +550,19 @@ class DisplayBackground extends AnimationObjectBase {
         this.ctx.stroke();
     }
 
+    renderBottomMessage() {
+        this.ctx.font = "30px Arial";
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText(this.selectMode,this.pos[0] - 0.04 * this.scale,this.pos[1] + 0.05 * this.scale);
+    }
+
     on_destroy() {
         this.completeProcessGroup.destroy();
         for(let i = 0;i < this.processBlockArray.length;i ++ ) {
             this.processBlockArray[i].destroy();
         }
         this.overflowProcessGroup.destroy();
+        this.handleProgressBar.destroy();
     }
 }class ProcessWaitGroup extends AnimationObjectBase {
     constructor(display) {
@@ -466,8 +580,11 @@ class DisplayBackground extends AnimationObjectBase {
         this.PBheight = this.height;
         this.PBShowCount = 5;
         this.processInfoArray = this.processRunnerControl.getWaitProcessInfo();
+        this.lastWaittingProcess = null;
 
         this.processBlockArray = [];
+
+        this.selectMode = this.display.selectMode;
     }
 
     start() {
@@ -476,7 +593,7 @@ class DisplayBackground extends AnimationObjectBase {
         let PBpos = this.pos;
         for(let i = 0;i < this.PBShowCount;i ++ ) {
             this.processBlockArray.push(new ProcessBlock(this,PBpos,this.PBWidth,this.PBheight));
-            PBpos = [PBpos[0] + this.PBWidth + 0.02 * this.scale,PBpos[1]];
+            PBpos = [PBpos[0] + this.PBWidth,PBpos[1]];
         }
 
         this.overflowProcessGroup = new OverflowProcessGroup(this.display,PBpos,this.PBWidth,this.PBheight,'line');
@@ -492,11 +609,25 @@ class DisplayBackground extends AnimationObjectBase {
         this.updateProcessInfo();
         this.updateProcessBlockInfo();
         this.updateOverflowProcessGroupShow();
+        this.updateProcessOut();
         this.render();
     }
 
     updateProcessInfo() {
         this.processInfoArray = this.processRunnerControl.getWaitProcessInfo();
+    }
+
+    updateProcessOut() {
+        if(this.lastWaittingProcess == null) {
+            this.lastWaittingProcess = this.processInfoArray[0];
+        } else if(this.processInfoArray[0] == null || this.lastWaittingProcess['processName'] != this.processInfoArray[0]['processName']) {
+            if(this.lastWaittingProcess != null) {
+                for(let i = 0;i < this.selectMode.length;i ++ ) {
+                    new MoveProcessBlock(this,this.pos,[this.display.width / (this.selectMode.length + 1) * (i + 1),this.display.height * 0.25],this.PBWidth,this.PBheight,this.lastWaittingProcess);
+                }
+            }
+            this.lastWaittingProcess = this.processInfoArray[0];
+        }
     }
 
     updateProcessBlockInfo() {
@@ -517,6 +648,7 @@ class DisplayBackground extends AnimationObjectBase {
             this.processBlockArray[i].destroy();
         }
         this.overflowProcessGroup.destroy();
+        this.waitProgressBar.destroy();
     }
  }class WaitProgressBar extends AnimationObjectBase {
     constructor(root,pos,width,height) {
@@ -649,11 +781,11 @@ class Menu {
                     <div class='input-and-random'>
                         <div class="input-form col-md-4 mx-auto"></div>
                         <div class="select-by-input d-grid gap-2.5 col-6 mx-auto">
-                            <button class="add-info-button btn btn-success" type="button">+add</button>
-                            <button class="select-by-input-button btn btn-primary" type="button">自己输入</button>
+                            <button class="menu-button add-info-button btn btn-success" type="button">+add</button>
+                            <button class="menu-button select-by-input-button btn btn-primary" type="button">自己输入</button>
                         </div>
                         <div class="select-by-random d-grid gap-2.5 col-6 mx-auto">
-                            <button class="select-by-random-button btn btn-primary" type="button">随机生成</button>
+                            <button class="menu-button select-by-random-button btn btn-primary" type="button">随机生成</button>
                         </div>
                     </div>
                     <div class='mode-select select-check'>
@@ -672,7 +804,7 @@ class Menu {
                     </div>
                     <div class='submit-button-field'>
                         <div class="d-grid gap-2.5 col-6 mx-auto">
-                            <button class="submit-button btn btn-primary" type="button">提交</button>
+                            <button class="menu-button submit-button btn btn-primary" type="button">提交</button>
                         </div>
                     </div>
                 </div>
@@ -699,6 +831,8 @@ class Menu {
         this.isRandom = true;
         this.seed = Math.floor(Math.random() * 10000);  // 生成随机种子
         this.generator = new Math.seedrandom(this.seed);  // 随机数生成器
+
+        this.colors = ["#00A86B","#FF4500","#317873"," #8A2BE2","#00416A"];
         
         this.start();
     }
@@ -711,23 +845,21 @@ class Menu {
         let outer = this;
 
         this.$selectByInputButton.click(() => {
+            outer.$selectByInputButton.prop('disabled', true);
+            outer.$selectByRandomButton.prop('disabled',false);
             outer.$inputForm.show();
             outer.$addInfoButton.show();
-
+    
             outer.isRandom = false;
-
-            outer.$selectByRandomButton.css('background-color',"rgb(54,108,251)");
-            outer.$selectByInputButton.css('background-color',"rgb(44,92,213)");
         });
 
         this.$selectByRandomButton.click(() => {
+            outer.$selectByInputButton.prop('disabled', false);
+            outer.$selectByRandomButton.prop('disabled',true);
             outer.$inputForm.hide();
             outer.$addInfoButton.hide();
 
             outer.isRandom = true;
-            
-            outer.$selectByInputButton.css('background-color',"rgb(54,108,251)");
-            outer.$selectByRandomButton.css('background-color',"rgb(44,92,213)");
         });
 
         this.$addInfoButton.click(() => {
@@ -761,12 +893,16 @@ class Menu {
                 for (var i = 1; i <= processCount; i++) {
                     processInfoArray.push({
                         'processName': "P" + dividedId,
-                        'arrivalTime': this.generateRandomDouble(1,20),
+                        'arrivalTime': this.generateRandomDouble(2,5),
                         'priority': this.generateRandomDouble(1,20),
                         'burstTime': this.generateRandomDouble(2,5),
                     });
                     dividedId ++;
                 }
+            }
+
+            for(let i = 0;i < processInfoArray.length;i ++ ) {
+                processInfoArray[i]['blockColor'] = this.colors[this.generateRandomInt(0,this.colors.length - 1)];
             }
 
             outer.getSelectMode();
@@ -857,7 +993,7 @@ class ProcessRunner extends AnimationObjectBase {
     startInstance() {
         const processes = this.addProcessArray;
         for(let i = 0;i < processes.length;i ++ ) {
-            this.instance.addWaitProcess(processes[i]['processName'],processes[i]['arrivalTime'],processes[i]['priority'],processes[i]['burstTime']);
+            this.instance.addWaitProcess(processes[i]['processName'],processes[i]['arrivalTime'],processes[i]['priority'],processes[i]['burstTime'],processes[i]['blockColor']);
         }
 
         this.instance.selectMode(this.mode);
@@ -903,6 +1039,7 @@ class ProcessRunner extends AnimationObjectBase {
                 'arrivalTime': processInfo[i].arrivalTime,
                 'priority': processInfo[i].priority,
                 'burstTime': processInfo[i].burstTime,
+                'blockColor': processInfo[i].blockColor,
             });
         }
         return processInfoArray;
@@ -917,6 +1054,7 @@ class ProcessRunner extends AnimationObjectBase {
                 'arrivalTime': processInfo[i].arrivalTime,
                 'priority': processInfo[i].priority,
                 'burstTime': processInfo[i].burstTime,
+                'blockColor': processInfo[i].blockColor,
             });
         }
         return processInfoArray;
@@ -932,6 +1070,7 @@ class ProcessRunner extends AnimationObjectBase {
                 'priority': processInfo[i].priority,
                 'burstTime': processInfo[i].burstTime,
                 'completeTime': processInfo[i].completeTime,
+                'blockColor': processInfo[i].blockColor,
             });
         }
         return processInfoArray;
