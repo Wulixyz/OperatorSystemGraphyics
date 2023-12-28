@@ -57,7 +57,7 @@ class ProcessWaitGroup extends AnimationObjectBase {
         } else if(this.processInfoArray[0] == null || this.lastWaittingProcess['processName'] != this.processInfoArray[0]['processName']) {
             if(this.lastWaittingProcess != null) {
                 for(let i = 0;i < this.selectMode.length;i ++ ) {
-                    new MoveProcessBlock(this,this.pos,[this.display.width / (this.selectMode.length + 1) * (i + 1),this.display.height * 0.25],this.PBWidth,this.PBheight,this.lastWaittingProcess);
+                    new MoveProcessBlock(this,this.pos,[this.display.width / (this.selectMode.length + 1) * (i + 1) - this.PBWidth / 2,this.display.height * 0.25],this.PBWidth,this.PBheight,this.lastWaittingProcess);
                 }
             }
             this.lastWaittingProcess = this.processInfoArray[0];

@@ -243,8 +243,8 @@ class DisplayBackground extends AnimationObjectBase {
     update() {
         const runDist = this.speed * this.hasRunTime;
         const pos = [this.pos1[0] + runDist * Math.cos(this.angle),this.pos1[1] + runDist * Math.sin(this.angle)];
-        const processNamePos = [pos[0] - this.width / 5 * 1,pos[1]];
-        pos[0] = pos[0] - this.width / 2,pos[1] = pos[1] - this.heigth / 2;
+        const processNamePos = [pos[0] + this.width / 5 * 2,pos[1]];
+        pos[1] = pos[1] - this.heigth / 2;
         
         this.renderBlock(pos);
         this.renderProcessName(processNamePos);
@@ -405,6 +405,7 @@ class DisplayBackground extends AnimationObjectBase {
         this.PBShowCount = 3;
         this.processInfoArray = this.processRunnerControl.getCompleteProcessInfo(this.selectMode);
         this.processBlockArray = [];
+        this.lastCompleteProcess = null;
     }
 
     start() {
@@ -423,6 +424,7 @@ class DisplayBackground extends AnimationObjectBase {
         this.updateProcessInfo();
         this.updateProcessBlockInfo();
         this.updateOverflowProcessGroupShow();
+        this.updateProcessIn();
         this.render();
     }
 
@@ -440,6 +442,15 @@ class DisplayBackground extends AnimationObjectBase {
     updateOverflowProcessGroupShow() {
         if(this.processInfoArray.length > this.PBShowCount) this.overflowProcessGroup.show();
         else this.overflowProcessGroup.hide();
+    }
+
+    updateProcessIn() {
+        if(this.processInfoArray[this.processInfoArray.length - 1] != null) {
+            if(this.lastCompleteProcess == null || this.lastCompleteProcess['processName'] != this.processInfoArray[this.processInfoArray.length - 1]['processName']) {
+                new MoveProcessBlock(this,[this.pos[0],this.pos[1] - 0.15 * this.scale],this.pos,this.root.PBwidth,this.root.PBheight,this.processInfoArray[this.processInfoArray.length - 1]);
+                this.lastCompleteProcess = this.processInfoArray[this.processInfoArray.length - 1];
+            }
+        }
     }
 
     on_destroy() {
@@ -472,6 +483,7 @@ class DisplayBackground extends AnimationObjectBase {
         this.PBShowCount = 6;
         this.processInfoArray = this.processRunnerControl.getHandleProcessInfo(this.selectMode);
         this.processBlockArray = [];
+        this.lastHandleProcess = null;
 
         this.arcRadius = 20;
     }
@@ -623,7 +635,7 @@ class DisplayBackground extends AnimationObjectBase {
         } else if(this.processInfoArray[0] == null || this.lastWaittingProcess['processName'] != this.processInfoArray[0]['processName']) {
             if(this.lastWaittingProcess != null) {
                 for(let i = 0;i < this.selectMode.length;i ++ ) {
-                    new MoveProcessBlock(this,this.pos,[this.display.width / (this.selectMode.length + 1) * (i + 1),this.display.height * 0.25],this.PBWidth,this.PBheight,this.lastWaittingProcess);
+                    new MoveProcessBlock(this,this.pos,[this.display.width / (this.selectMode.length + 1) * (i + 1) - this.PBWidth / 2,this.display.height * 0.25],this.PBWidth,this.PBheight,this.lastWaittingProcess);
                 }
             }
             this.lastWaittingProcess = this.processInfoArray[0];

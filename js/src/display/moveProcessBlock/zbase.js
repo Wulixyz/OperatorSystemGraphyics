@@ -30,8 +30,8 @@ class MoveProcessBlock extends AnimationObjectBase {
     update() {
         const runDist = this.speed * this.hasRunTime;
         const pos = [this.pos1[0] + runDist * Math.cos(this.angle),this.pos1[1] + runDist * Math.sin(this.angle)];
-        const processNamePos = [pos[0] - this.width / 5 * 1,pos[1]];
-        pos[0] = pos[0] - this.width / 2,pos[1] = pos[1] - this.heigth / 2;
+        const processNamePos = [pos[0] + this.width / 5 * 2,pos[1]];
+        pos[1] = pos[1] - this.heigth / 2;
         
         this.renderBlock(pos);
         this.renderProcessName(processNamePos);

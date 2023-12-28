@@ -17,6 +17,7 @@ class ProcessHandleGroup extends AnimationObjectBase {
         this.PBShowCount = 6;
         this.processInfoArray = this.processRunnerControl.getHandleProcessInfo(this.selectMode);
         this.processBlockArray = [];
+        this.lastHandleProcess = null;
 
         this.arcRadius = 20;
     }

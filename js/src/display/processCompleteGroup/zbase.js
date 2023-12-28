@@ -16,6 +16,7 @@ class ProcessCompleteGroup extends AnimationObjectBase {
         this.PBShowCount = 3;
         this.processInfoArray = this.processRunnerControl.getCompleteProcessInfo(this.selectMode);
         this.processBlockArray = [];
+        this.lastCompleteProcess = null;
     }
 
     start() {
@@ -34,6 +35,7 @@ class ProcessCompleteGroup extends AnimationObjectBase {
         this.updateProcessInfo();
         this.updateProcessBlockInfo();
         this.updateOverflowProcessGroupShow();
+        this.updateProcessIn();
         this.render();
     }
 
@@ -51,6 +53,15 @@ class ProcessCompleteGroup extends AnimationObjectBase {
     updateOverflowProcessGroupShow() {
         if(this.processInfoArray.length > this.PBShowCount) this.overflowProcessGroup.show();
         else this.overflowProcessGroup.hide();
+    }
+
+    updateProcessIn() {
+        if(this.processInfoArray[this.processInfoArray.length - 1] != null) {
+            if(this.lastCompleteProcess == null || this.lastCompleteProcess['processName'] != this.processInfoArray[this.processInfoArray.length - 1]['processName']) {
+                new MoveProcessBlock(this,[this.pos[0],this.pos[1] - 0.15 * this.scale],this.pos,this.root.PBwidth,this.root.PBheight,this.processInfoArray[this.processInfoArray.length - 1]);
+                this.lastCompleteProcess = this.processInfoArray[this.processInfoArray.length - 1];
+            }
+        }
     }
 
     on_destroy() {
