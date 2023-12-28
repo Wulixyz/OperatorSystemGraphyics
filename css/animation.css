@@ -13,6 +13,16 @@ body {
     background-size: cover;
 }
 
+.result-background {
+    overflow: hidden;
+    min-width: 100vw;
+    min-height: 100vh;
+    background-attachment: fixed;
+    background-image: url('../picture/background.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
 .menu {
     /* margin-top: 20%; */
     display: flex;

@@ -742,13 +742,19 @@ class DisplayBackground extends AnimationObjectBase {
         this.scale = this.height;
 
         this.hide();
+        this.start();
     }
 
     start() {
-
+        $(window).on('resize',() => {
+            this.resize();
+        });
     }
 
     resize() {
+        this.width = this.$display.width();
+        this.height = this.$display.height();
+        this.scale = this.height;
         if(this.displayBackground) this.displayBackground.resize();
     }
 
@@ -1234,7 +1240,7 @@ class ProcessRunner extends AnimationObjectBase {
 }class Result {
     constructor(root) {
         this.root = root;
-        this.$result = $(`<div class="result"></div>`);
+        this.$result = $(`<div class="result result-background"></div>`);
         this.root.$schedule.append(this.$result);
 
         this.menu = this.root.menu;

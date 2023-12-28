@@ -1,7 +1,7 @@
 class Result {
     constructor(root) {
         this.root = root;
-        this.$result = $(`<div class="result"></div>`);
+        this.$result = $(`<div class="result result-background"></div>`);
         this.root.$schedule.append(this.$result);
 
         this.menu = this.root.menu;

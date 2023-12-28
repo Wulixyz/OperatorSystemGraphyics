@@ -10,13 +10,19 @@ class Display{
         this.scale = this.height;
 
         this.hide();
+        this.start();
     }
 
     start() {
-
+        $(window).on('resize',() => {
+            this.resize();
+        });
     }
 
     resize() {
+        this.width = this.$display.width();
+        this.height = this.$display.height();
+        this.scale = this.height;
         if(this.displayBackground) this.displayBackground.resize();
     }
 
